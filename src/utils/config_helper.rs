@@ -7,6 +7,8 @@ use crate::error::{Error, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
+const CONFIG_FILE: &str = "rsm-conf.json";
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
     key: Option<String>,
@@ -14,22 +16,27 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn get_or_set_config() -> Result<Config> {
+    pub fn get_config() -> Result<Config> {
         read_file().map_err(|e| {
             log::error!("Error in reading the file {e}");
             Error::InvalidConfig
         })
     }
+
+    pub fn update_config(&self) -> Result<()> {
+        write_config(CONFIG_FILE, self.key.as_deref(), self.first_run).map_err(|e| {
+            log::error!("Error in updating file {e}");
+            Error::FailedToUpdateConf
+        })
+    }
 }
 
 fn read_file() -> std::io::Result<Config> {
-    let file_path = "rsm-conf.json";
-
-    if !file_exists_or_empty(&file_path)? {
-        write_default_json(&file_path)?;
+    if !file_exists_or_empty(CONFIG_FILE)? {
+        write_config(CONFIG_FILE, None, true)?;
     }
 
-    let mut file = File::open(&file_path)?;
+    let mut file = File::open(CONFIG_FILE)?;
 
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
@@ -48,10 +55,11 @@ fn file_exists_or_empty(file_path: &str) -> std::io::Result<bool> {
         Ok(false)
     }
 }
-fn write_default_json(file_path: &str) -> std::io::Result<()> {
+
+fn write_config(file_path: &str, key: Option<&str>, first_run: bool) -> std::io::Result<()> {
     let default_json = json!({
-        "key": null,
-        "first_run": true
+        "key": key,
+        "first_run": first_run
     });
 
     let json_string = serde_json::to_string_pretty(&default_json)?;

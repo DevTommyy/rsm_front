@@ -65,11 +65,13 @@ fn app_args() -> clap::ArgMatches {
 
 fn main() -> Result<()> {
     log4rs::init_file("log/logger-config.yaml", Default::default()).unwrap();
-    let config = Config::get_or_set_config()?;
+    let mut config = Config::get_config()?;
 
     let args = app_args();
     if config.first_run {
         show_first_run_prompt()?;
+        config.first_run = true;
+        config.update_config()?;
     }
 
     match args.subcommand() {
@@ -95,5 +97,6 @@ fn main() -> Result<()> {
 }
 
 fn show_first_run_prompt() -> Result<()> {
-    todo!()
+    println!("TODO SHOW FIRST RUN PROMPT AND SENT LOGIN OR SIGNUP");
+    Ok(())
 }

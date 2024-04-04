@@ -168,6 +168,7 @@ fn app_args() -> clap::ArgMatches {
 }
 
 fn main() -> Result<()> {
+    api::api::test();
     // init logger
     log4rs::init_file("log/logger-config.yaml", Default::default()).unwrap();
 

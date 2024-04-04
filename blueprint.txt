@@ -83,3 +83,9 @@ for list
 -g --group (requires tablename)
 -s --sort-by (requires tablename)
 $ rsm list <tablename_opt> <opts>
+
+for remove
+$ rsm remove <id>
+
+for update
+$ rsm update <id>

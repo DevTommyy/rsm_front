@@ -59,7 +59,7 @@ fn app_args() -> clap::ArgMatches {
                 ),
         )
         .subcommand(
-            Command::new("delete").about("Deletes a table").arg(
+            Command::new("drop").about("Deletes a table").arg(
                 Arg::new("tablename")
                     .required(true)
                     .help("Name of the table to remove"),
@@ -125,6 +125,45 @@ fn app_args() -> clap::ArgMatches {
                         .help("The group of the task"),
                 ),
         )
+        .subcommand(
+            Command::new("remove") // TODO: map the id into the desc to send to the api
+                .about("Removes a task from a table")
+                .arg(
+                    Arg::new("tablename")
+                        .required(true)
+                        .help("Name of the table where to remove the task"),
+                )
+                .arg(
+                    Arg::new("id")
+                        .required(true)
+                        .help("The id of the task to remove")
+                        .value_parser(value_parser!(u8)),
+                ),
+        )
+        .subcommand(
+            Command::new("update") // TODO: map the id into the desc to send to the api
+                .about("Updates a task from a table")
+                .arg(
+                    Arg::new("tablename")
+                        .required(true)
+                        .help("Name of the table where to update the task"),
+                )
+                .arg(
+                    Arg::new("id")
+                        .required(true)
+                        .help("The id of the task to update")
+                        .value_parser(value_parser!(u8)),
+                ),
+        )
+        .subcommand(
+            Command::new("clear")
+                .about("Clears completely a table")
+                .arg(
+                    Arg::new("tablename")
+                        .required(true)
+                        .help("Name of the table where to clear"),
+                ),
+        )
         .get_matches()
 }
 
@@ -156,8 +195,8 @@ fn main() -> Result<()> {
             sub_matches.get_one::<String>("tablename").unwrap(),
             sub_matches.get_one::<bool>("due")
         ),
-        Some(("delete", sub_matches)) => println!(
-            "'rsm delete' was used, tablename is: {:?}",
+        Some(("drop", sub_matches)) => println!(
+            "'rsm drop' was used, tablename is: {:?}",
             sub_matches.get_one::<String>("tablename").unwrap()
         ),
         Some(("add", sub_matches)) => println!(
@@ -169,6 +208,20 @@ fn main() -> Result<()> {
             sub_matches.get_one::<LineRange>("range"),
             sub_matches.get_one::<String>("due"),
             sub_matches.get_one::<String>("group"),
+        ),
+        Some(("remove", sub_matches)) => println!(
+            "'rsm remove' was used, tablename is: {:?}, id is {:?}",
+            sub_matches.get_one::<String>("tablename").unwrap(),
+            sub_matches.get_one::<u8>("id").unwrap(),
+        ),
+        Some(("update", sub_matches)) => println!(
+            "'rsm update' was used, tablename is: {:?}, id is {:?}",
+            sub_matches.get_one::<String>("tablename").unwrap(),
+            sub_matches.get_one::<u8>("id").unwrap()
+        ),
+        Some(("clear", sub_matches)) => println!(
+            "'rsm clear' was used, tablename is: {:?}",
+            sub_matches.get_one::<String>("tablename").unwrap()
         ),
         _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
     }

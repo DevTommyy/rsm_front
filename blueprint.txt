@@ -59,6 +59,8 @@ $ rsm sync add -f init.lua -r 33-40
 ...
 
 use the flags to get data for the commands, so something like:
+
+for add
 -t --task
 OR
 -f --file
@@ -69,3 +71,15 @@ OR
 -d --due (if supported if not -> due unsupported err)
 -g --group (opt)
 $ rsm add -t "go to the grocery store" -d 10:30 -g important
+
+for create
+-d --due  (if present sets has due to true)
+$ rsm create <tablename> -d
+
+for delete
+$ rsm delete <tablename>
+
+for list
+-g --group (requires tablename)
+-s --sort-by (requires tablename)
+$ rsm list <tablename_opt> <opts>

@@ -1,67 +1,99 @@
 // NOTE: same thing as before but builder pattern
 // https://docs.rs/clap/latest/clap/_tutorial/chapter_0/index.html
 
-use std::path::PathBuf;
-
-use clap::{arg, command, value_parser, ArgAction, Command};
+use crate::error::Result;
+use clap::{command, Arg, ArgAction, Command};
+use utils::config_helper::Config;
 
 pub mod api;
 pub mod error;
 pub mod utils;
 
-fn main() {
-    let matches = command!() // requires `cargo` feature
-        .arg(arg!([action] "Action to execute"))
-        .arg(
-            arg!(
-                -c --config <FILE> "Sets a custom config file"
-            )
-            // We don't have syntax yet for optional options, so manually calling `required`
-            .required(false)
-            .value_parser(value_parser!(PathBuf)),
-        )
-        .arg(arg!(
-            -d --debug ... "Turn debugging information on"
-        ))
+fn app_args() -> clap::ArgMatches {
+    command!()
+        .subcommand_required(true)
+        .arg_required_else_help(true)
+        .subcommand(Command::new("new-key").about("Resets the account key")) //TODO: confirmation
         .subcommand(
-            Command::new("test")
-                .about("does testing things")
-                .arg(arg!(-l --list "lists test values").action(ArgAction::SetTrue)),
+            Command::new("create")
+                .about("Creates a new table")
+                .arg(
+                    Arg::new("tablename")
+                        .required(true)
+                        .help("Name of the table to create"),
+                )
+                .arg(
+                    Arg::new("due")
+                        .long("due")
+                        .short('d')
+                        .action(ArgAction::SetTrue)
+                        .help("Set if the table has due time, defaults to false"),
+                ),
         )
-        .get_matches();
+        .subcommand(
+            Command::new("delete").about("Deletes a table").arg(
+                Arg::new("tablename")
+                    .required(true)
+                    .help("Name of the table to remove"),
+            ),
+        )
+        .subcommand(
+            Command::new("list")
+                .about("List tables with specs or table contents")
+                .arg(
+                    Arg::new("tablename")
+                        .required(false)
+                        .help("Name of the table to show"),
+                )
+                .arg(
+                    Arg::new("group")
+                        .short('g')
+                        .long("group")
+                        .requires("tablename")
+                        .help("Specify the group to show"),
+                )
+                .arg(
+                    Arg::new("sort-by")
+                        .short('s')
+                        .long("sort-by")
+                        .requires("tablename")
+                        .help("The key to sort the output by"), // .value_parser(["due", "group"]),
+                ),
+        )
+        .get_matches()
+}
 
-    // You can check the value provided by positional arguments, or option arguments
-    if let Some(name) = matches.get_one::<String>("name") {
-        println!("Value for name: {name}");
+fn main() -> Result<()> {
+    log4rs::init_file("log/logger-config.yaml", Default::default()).unwrap();
+    let config = Config::get_or_set_config()?;
+
+    let args = app_args();
+    if config.first_run {
+        show_first_run_prompt()?;
     }
 
-    if let Some(config_path) = matches.get_one::<PathBuf>("config") {
-        println!("Value for config: {}", config_path.display());
+    match args.subcommand() {
+        Some(("create", sub_matches)) => println!(
+            "'rsm create' was used, tablename is: {:?}, and due is {:?}",
+            sub_matches.get_one::<String>("tablename").unwrap(),
+            sub_matches.get_one::<bool>("due")
+        ),
+        Some(("delete", sub_matches)) => println!(
+            "'rsm delete' was used, tablename is: {:?}",
+            sub_matches.get_one::<String>("tablename").unwrap()
+        ),
+        Some(("list", sub_matches)) => println!(
+            "'rsm list' was used, tablename is: {:?}, group is: {:?}, sort key is: {:?}",
+            sub_matches.get_one::<String>("tablename"),
+            sub_matches.get_one::<String>("group"),
+            sub_matches.get_one::<String>("sort-by")
+        ),
+        _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
     }
 
-    // You can see how many times a particular flag or argument occurred
-    // Note, only flags can have multiple occurrences
-    match matches
-        .get_one::<u8>("debug")
-        .expect("Count's are defaulted")
-    {
-        0 => println!("Debug mode is off"),
-        1 => println!("Debug mode is kind of on"),
-        2 => println!("Debug mode is on"),
-        _ => println!("Don't be crazy"),
-    }
+    Ok(())
+}
 
-    // You can check for the existence of subcommands, and if found use their
-    // matches just as you would the top level cmd
-    if let Some(matches) = matches.subcommand_matches("test") {
-        // "$ myapp test" was run
-        if matches.get_flag("list") {
-            // "$ myapp test -l" was run
-            println!("Printing testing lists...");
-        } else {
-            println!("Not printing testing lists...");
-        }
-    }
-
-    // Continued program logic goes here...
+fn show_first_run_prompt() -> Result<()> {
+    todo!()
 }

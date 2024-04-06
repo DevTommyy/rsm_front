@@ -1,4 +1,4 @@
-use chrono::NaiveDateTime;
+use chrono::{format, NaiveDateTime};
 use reqwest::{blocking, header};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -46,8 +46,18 @@ impl Api {
             .map_err(|_| Error::FailedToConnectToServer)?;
 
         let token: String = self.token.clone().into();
+        let table = match tablename {
+            Some(name) => {
+                if ["reminder", "todo"].contains(&name) {
+                    name.to_owned()
+                } else {
+                    format!("user/{}", name)
+                }
+            }
+            None => "list".to_owned(),
+        };
 
-        let mut url = format!("{}/{}", BACKEND, tablename.unwrap_or("list"));
+        let mut url = format!("{}/{}", BACKEND, table);
 
         if !opts.is_empty() {
             let mut encoded_params = String::new();
@@ -60,6 +70,7 @@ impl Api {
             encoded_params.pop();
             url.push_str(&format!("?{}", encoded_params));
         }
+        println!("DEBUG: {url}");
 
         let mut response = client
             .get(url)

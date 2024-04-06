@@ -4,11 +4,16 @@ pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Clone, Debug, Serialize, strum_macros::AsRefStr)]
 pub enum Error {
+    // -- Config errors
     FailedToReadConfig,
     InvalidConfig,
     FailedToUpdateConf,
+
+    // -- Other errors
     FirstRunFailed,
     NoAuth,
+
+    // -- Server errors
     FailedToConnectToServer,
     FailedtoReadServerResponse,
     InvalidServerResponse,

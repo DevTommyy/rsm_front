@@ -32,7 +32,7 @@ impl Display for ErrorResponse {
         )?;
         writeln!(
             f,
-            "| An error occurred in the request to the server: \x1b[31m{:<29}\x1b[0m |",
+            "| An error occurred in the request to the server: \x1b[31m{}\x1b[0m |",
             self.error.error_type
         )?;
         writeln!(
@@ -45,21 +45,31 @@ impl Display for ErrorResponse {
 
 impl std::fmt::Display for GetTaskResponse {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "+ -------------- + ------------------- + ----------- +")?;
-        writeln!(f, "| \x1b[34mTASK\x1b[0m           | \x1b[34mDUE\x1b[0m                 | \x1b[34mGROUP\x1b[0m       |")?;
-        writeln!(f, "+ -------------- + ------------------- + ----------- +")?;
+        writeln!(
+            f,
+            "+ ------------------------------------- + ------------------- + ------------------- +"
+        )?;
+        writeln!(f, "| \x1b[34mTASK\x1b[0m                                  | \x1b[34mDUE\x1b[0m                 | \x1b[34mGROUP\x1b[0m               |")?;
+        writeln!(
+            f,
+            "+ ------------------------------------- + ------------------- + ------------------- +"
+        )?;
         for detail in &self.res {
             writeln!(
                 f,
-                "| {:<15}| {:<20}| {:<12}|",
+                "| {:<38}| {:<20}| {:<20}|",
                 detail.description,
-                detail
-                    .due
-                    .map_or_else(|| "None".to_string(), |due| due.to_string()),
+                detail.due.map_or_else(
+                    || "None".to_string(),
+                    |due| due.format("%Y-%m-%d %H:%M:%S").to_string()
+                ),
                 detail.group
             )?;
         }
-        writeln!(f, "+ -------------- + ------------------- + ----------- +")?;
+        writeln!(
+            f,
+            "+ ------------------------------------- + ------------------- + ------------------- +"
+        )?;
         Ok(())
     }
 }

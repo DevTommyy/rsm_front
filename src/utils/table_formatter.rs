@@ -1,5 +1,5 @@
 // format the table to be shown in a pretty manner
-use crate::api::api::{GetTaskResponse, TableCharacteristicsResponse};
+use crate::api::api_list::{GetTaskResponse, TableCharacteristicsResponse};
 use crate::api::ErrorResponse;
 use std::fmt::Display;
 
@@ -26,17 +26,28 @@ impl FormattedResponse for ErrorResponse {
 // -- Display impl
 impl Display for ErrorResponse {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
+        writeln!(
             f,
-            "An error occurred in the request to the server: {:?}",
+            "+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +"
+        )?;
+        writeln!(
+            f,
+            "| An error occurred in the request to the server: \x1b[31m{:<29}\x1b[0m |",
             self.error.error_type
-        )
+        )?;
+        writeln!(
+            f,
+            "+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +"
+        )?;
+        Ok(())
     }
 }
-impl Display for GetTaskResponse {
+
+impl std::fmt::Display for GetTaskResponse {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "| task           | DUE                 | GROUP       |")?;
-        writeln!(f, "| -------------- | ------------------- | ----------- |")?;
+        writeln!(f, "+ -------------- + ------------------- + ----------- +")?;
+        writeln!(f, "| \x1b[34mTASK\x1b[0m           | \x1b[34mDUE\x1b[0m                 | \x1b[34mGROUP\x1b[0m       |")?;
+        writeln!(f, "+ -------------- + ------------------- + ----------- +")?;
         for detail in &self.res {
             writeln!(
                 f,
@@ -48,17 +59,23 @@ impl Display for GetTaskResponse {
                 detail.group
             )?;
         }
+        writeln!(f, "+ -------------- + ------------------- + ----------- +")?;
         Ok(())
     }
 }
 
-impl Display for TableCharacteristicsResponse {
+impl std::fmt::Display for TableCharacteristicsResponse {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "| table name        | supports due  |")?;
+        writeln!(f, "+ ----------------- + ------------- +")?;
+        writeln!(
+            f,
+            "| \x1b[34mTABLE NAME\x1b[0m        | \x1b[34mSUPPORTS DUE\x1b[0m  |"
+        )?;
         writeln!(f, "| ----------------- | ------------- |")?;
         for table in &self.res {
             writeln!(f, "| {:<18}| {:<14}|", table.name, table.has_due)?;
         }
+        writeln!(f, "+ ----------------- + ------------- +")?;
         Ok(())
     }
 }

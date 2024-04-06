@@ -1,5 +1,5 @@
 // modules_definition
-pub mod api;
+pub mod api_list;
 
 // -- general api utils definitions
 use crate::utils::config_helper::Token;

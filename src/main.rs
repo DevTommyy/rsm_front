@@ -193,14 +193,13 @@ fn main() -> Result<()> {
             let tablename = sub_matches.get_one::<String>("tablename").map(|s| s.as_str());
             let group = sub_matches.get_one::<String>("group").map(|s| s.as_str());
             let sort_key = sub_matches.get_one::<String>("sort-by").map(|s| s.as_str());
-            println!("'rsm list' was used, tablename is: {:?}, group is: {:?}, sort key is: {:?}", tablename, group, sort_key);
+
+            println!("DEBUG: 'rsm list' was used, tablename is: {:?}, group is: {:?}, sort key is: {:?}", tablename, group, sort_key);
 
             let mut opts_map: HashMap<&str, &str> = HashMap::new();
-
             if let Some(group_value) = group {
                 opts_map.insert("group", group_value);
             }
-
             if let Some(sort_by_value) = sort_key {
                 opts_map.insert("sort_by", sort_by_value);
             }

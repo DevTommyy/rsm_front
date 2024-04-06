@@ -9,9 +9,25 @@ use serde_json::json;
 
 const CONFIG_FILE: &str = "rsm-conf.json";
 
+#[derive(Deserialize, Clone)]
+pub struct Token(String);
+
+impl Into<String> for Token {
+    fn into(self) -> String {
+        self.0
+    }
+}
+
+impl From<String> for Token {
+    fn from(value: String) -> Token {
+        Token(value)
+    }
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
-    key: Option<String>,
+    pub key: Option<String>,
+    pub token: Option<String>,
     pub first_run: bool,
 }
 
@@ -24,16 +40,34 @@ impl Config {
     }
 
     pub fn update_config(&self) -> Result<()> {
-        write_config(CONFIG_FILE, self.key.as_deref(), self.first_run).map_err(|e| {
+        write_config(
+            CONFIG_FILE,
+            self.key.as_deref(),
+            self.first_run,
+            self.token.as_deref(),
+        )
+        .map_err(|e| {
             log::error!("Error in updating file {e}");
             Error::FailedToUpdateConf
         })
+    }
+
+    pub fn load_token() -> Result<Token> {
+        let mut file = File::open(CONFIG_FILE).map_err(|_| Error::InvalidConfig)?;
+
+        let mut contents = String::new();
+        file.read_to_string(&mut contents)
+            .map_err(|_| Error::FailedToReadConfig)?;
+
+        let data: Config = serde_json::from_str(&contents).map_err(|_| Error::InvalidConfig)?;
+        let token: Token = Token::from(data.token.ok_or(Error::NoAuth)?);
+        Ok(token)
     }
 }
 
 fn read_file() -> std::io::Result<Config> {
     if !file_exists_or_empty(CONFIG_FILE)? {
-        write_config(CONFIG_FILE, None, true)?;
+        write_config(CONFIG_FILE, None, true, None)?;
     }
 
     let mut file = File::open(CONFIG_FILE)?;
@@ -56,10 +90,16 @@ fn file_exists_or_empty(file_path: &str) -> std::io::Result<bool> {
     }
 }
 
-fn write_config(file_path: &str, key: Option<&str>, first_run: bool) -> std::io::Result<()> {
+fn write_config(
+    file_path: &str,
+    key: Option<&str>,
+    first_run: bool,
+    token: Option<&str>,
+) -> std::io::Result<()> {
     let default_json = json!({
         "key": key,
-        "first_run": first_run
+        "first_run": first_run,
+        "token": token
     });
 
     let json_string = serde_json::to_string_pretty(&default_json)?;

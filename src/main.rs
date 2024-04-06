@@ -1,9 +1,9 @@
 // NOTE: same thing as before but builder pattern
 // https://docs.rs/clap/latest/clap/_tutorial/chapter_0/index.html
 
-use std::path::PathBuf;
+use std::{collections::HashMap, path::PathBuf};
 
-use crate::{error::Result, parsers::LineRange};
+use crate::{api::api::Api, error::Result, parsers::LineRange};
 use clap::{command, value_parser, Arg, ArgAction, ArgGroup, Command};
 use utils::config_helper::Config;
 
@@ -168,12 +168,13 @@ fn app_args() -> clap::ArgMatches {
 }
 
 fn main() -> Result<()> {
-    api::api::test();
     // init logger
     log4rs::init_file("log/logger-config.yaml", Default::default()).unwrap();
 
     //init config and if it is the first time running show the default prompt
     let mut config = Config::get_config()?;
+
+    let api = Api::new()?;
 
     let args = app_args();
     if config.first_run {
@@ -185,12 +186,25 @@ fn main() -> Result<()> {
     match args.subcommand() {
         Some(("new-key", _)) => println!("'rsm new-key' was used"),
         Some(("logout", _)) => println!("'rsm logout' was used"),
-        Some(("list", sub_matches)) => println!(
-            "'rsm list' was used, tablename is: {:?}, group is: {:?}, sort key is: {:?}",
-            sub_matches.get_one::<String>("tablename"),
-            sub_matches.get_one::<String>("group"),
-            sub_matches.get_one::<String>("sort-by")
-        ),
+        Some(("list", sub_matches)) => { 
+            
+            let tablename = sub_matches.get_one::<String>("tablename").map(|s| s.as_str());
+            let group = sub_matches.get_one::<String>("group").map(|s| s.as_str());
+            let sort_key = sub_matches.get_one::<String>("sort-by").map(|s| s.as_str());
+            println!("'rsm list' was used, tablename is: {:?}, group is: {:?}, sort key is: {:?}", tablename, group, sort_key);
+
+            let mut opts_map: HashMap<&str, &str> = HashMap::new();
+
+            if let Some(group_value) = group {
+                opts_map.insert("group", group_value);
+            }
+
+            if let Some(sort_by_value) = sort_key {
+                opts_map.insert("sort_by", sort_by_value);
+            }
+
+            api.get_tasks(tablename, opts_map)?;
+        },
         Some(("create", sub_matches)) => println!(
             "'rsm create' was used, tablename is: {:?}, and due is {:?}",
             sub_matches.get_one::<String>("tablename").unwrap(),

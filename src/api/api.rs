@@ -6,25 +6,9 @@ use std::collections::HashMap;
 use std::io::Read;
 
 use crate::error::{Error, Result};
-use crate::utils::config_helper::{Config, Token};
+use crate::utils::table_formatter::FormattedResponse;
 
-const BACKEND: &str = "http://100.97.63.15:10001";
-
-pub struct Api {
-    token: Token,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct ErrorResponse {
-    pub error: ErrorDetail,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-struct ErrorDetail {
-    req_uuid: String,
-    #[serde(rename = "type")]
-    error_type: String,
-}
+use super::{Api, ErrorResponse, BACKEND};
 
 #[derive(Deserialize, Serialize)]
 pub struct TableCharacteristicsResponse {
@@ -45,19 +29,17 @@ pub struct GetTaskResponse {
 #[derive(Deserialize, Serialize)]
 #[skip_serializing_none]
 pub struct GetTaskResponseDetail {
-    description: String,
-    group: String,
-    due: Option<NaiveDateTime>,
+    pub description: String,
+    pub group: String,
+    pub due: Option<NaiveDateTime>,
 }
 
 impl Api {
-    pub fn new() -> Result<Api> {
-        let token = Config::load_token()?;
-        Ok(Api { token })
-    }
-
-    //TODO: return gettaskresponse
-    pub fn get_tasks(&self, tablename: Option<&str>, opts: HashMap<&str, &str>) -> Result<()> {
+    pub fn get_tasks(
+        &self,
+        tablename: Option<&str>,
+        opts: HashMap<&str, &str>,
+    ) -> Result<Box<dyn FormattedResponse>> {
         let client = blocking::Client::builder()
             .cookie_store(true)
             .build()
@@ -90,27 +72,26 @@ impl Api {
             .read_to_string(&mut body)
             .map_err(|_| Error::InvalidServerResponse)?;
 
-        // TODO: move this into the formatter
-        let pretty_res = if body.contains("error") {
-            let json_response: ErrorResponse =
+        let json_response_obj: Box<dyn FormattedResponse> = if body.contains("error") {
+            let err_response: ErrorResponse =
                 serde_json::from_str(&body).map_err(|_| Error::FailedtoReadServerResponse)?;
-            serde_json::to_string_pretty(&json_response)
-                .map_err(|_| Error::FailedtoReadServerResponse)?
+            Box::new(err_response)
         } else {
-            if tablename.is_some() {
-                let json_response: GetTaskResponse =
-                    serde_json::from_str(&body).map_err(|_| Error::FailedtoReadServerResponse)?;
-                serde_json::to_string_pretty(&json_response)
-                    .map_err(|_| Error::FailedtoReadServerResponse)?
-            } else {
-                let json_response: TableCharacteristicsResponse =
-                    serde_json::from_str(&body).map_err(|_| Error::FailedtoReadServerResponse)?;
-                serde_json::to_string_pretty(&json_response)
-                    .map_err(|_| Error::FailedtoReadServerResponse)?
+            match tablename {
+                Some(_) => {
+                    let task_response: GetTaskResponse = serde_json::from_str(&body)
+                        .map_err(|_| Error::FailedtoReadServerResponse)?;
+                    Box::new(task_response)
+                }
+                None => {
+                    let table_char_response: TableCharacteristicsResponse =
+                        serde_json::from_str(&body)
+                            .map_err(|_| Error::FailedtoReadServerResponse)?;
+                    Box::new(table_char_response)
+                }
             }
         };
 
-        println!("{}", pretty_res);
-        Ok(())
+        Ok(json_response_obj)
     }
 }

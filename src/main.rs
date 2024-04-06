@@ -1,11 +1,13 @@
-// NOTE: same thing as before but builder pattern
 // https://docs.rs/clap/latest/clap/_tutorial/chapter_0/index.html
 
 use std::{collections::HashMap, path::PathBuf};
 
-use crate::{api::api::Api, error::Result, parsers::LineRange};
 use clap::{command, value_parser, Arg, ArgAction, ArgGroup, Command};
+use parsers::LineRange;
 use utils::config_helper::Config;
+
+use crate::api::Api;
+use crate::error::Result;
 
 pub mod api;
 pub mod error;
@@ -116,7 +118,7 @@ fn app_args() -> clap::ArgMatches {
                         .long("due")
                         .short('d')
                         .help("The due of the task")
-                        .value_parser(value_parser!(String)), // TODO: transform into a NaiveDateTime
+                        .value_parser(value_parser!(String)),
                 )
                 .arg(
                     Arg::new("group")
@@ -126,7 +128,7 @@ fn app_args() -> clap::ArgMatches {
                 ),
         )
         .subcommand(
-            Command::new("remove") // TODO: map the id into the desc to send to the api
+            Command::new("remove")
                 .about("Removes a task from a table")
                 .arg(
                     Arg::new("tablename")
@@ -134,14 +136,14 @@ fn app_args() -> clap::ArgMatches {
                         .help("Name of the table where to remove the task"),
                 )
                 .arg(
-                    Arg::new("id")
+                    Arg::new("desc")
                         .required(true)
-                        .help("The id of the task to remove")
-                        .value_parser(value_parser!(u8)),
+                        .help("The description of the task to remove")
+                        .value_parser(value_parser!(String)),
                 ),
         )
         .subcommand(
-            Command::new("update") // TODO: map the id into the desc to send to the api
+            Command::new("update")
                 .about("Updates a task from a table")
                 .arg(
                     Arg::new("tablename")
@@ -149,10 +151,10 @@ fn app_args() -> clap::ArgMatches {
                         .help("Name of the table where to update the task"),
                 )
                 .arg(
-                    Arg::new("id")
+                    Arg::new("desc")
                         .required(true)
-                        .help("The id of the task to update")
-                        .value_parser(value_parser!(u8)),
+                        .help("The description of the task to remove")
+                        .value_parser(value_parser!(String)),
                 ),
         )
         .subcommand(
@@ -203,7 +205,16 @@ fn main() -> Result<()> {
                 opts_map.insert("sort_by", sort_by_value);
             }
 
-            api.get_tasks(tablename, opts_map)?;
+            match api.get_tasks(tablename, opts_map) {
+                Ok(res) => {
+                    log::info!("Successfully sent GET request and received response");
+                    res.print();
+                },
+                Err(err) => {
+                    log::error!("Error occurred while fetching tasks: {:?}", err);
+                    return Err(err);
+                }
+            }
         },
         Some(("create", sub_matches)) => println!(
             "'rsm create' was used, tablename is: {:?}, and due is {:?}",

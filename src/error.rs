@@ -9,12 +9,13 @@ pub enum Error {
     InvalidConfig,
     FailedToUpdateConf,
 
-    // -- Other errors
-    FirstRunFailed,
-    NoAuth,
-
     // -- Server errors
     FailedToConnectToServer,
     FailedtoReadServerResponse,
     InvalidServerResponse,
+
+    // -- Other errors
+    FirstRunFailed,
+    NoAuth,
+    RsmFailed,
 }

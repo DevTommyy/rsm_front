@@ -6,7 +6,8 @@ use clap::{command, value_parser, Arg, ArgAction, ArgGroup, Command};
 use parsers::LineRange;
 use utils::config_helper::Config;
 
-use crate::api::Api;
+use crate::utils::{get_user_choice, Choice};
+use crate::{api::Api, error::Error};
 use crate::error::Result;
 
 pub mod api;
@@ -14,7 +15,6 @@ pub mod error;
 pub mod parsers;
 pub mod utils;
 
-// TODO: validate some args, eg the len of the task provided
 fn app_args() -> clap::ArgMatches {
     command!()
         .subcommand_required(true)
@@ -254,7 +254,51 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+/*
+Welcome to RsMember!
+
+do you already have a key([yes]/no)
+no
+Account creation:
+username: tizio123
+password: *****
+
+Your key is: 982y3hfhaajdf9011ahdf
+Account creation successful! 
+
+Use it in other devices to sync to your account
+
+Thank you!
+*/
+
 fn show_first_run_prompt() -> Result<()> {
-    println!("TODO SHOW FIRST RUN PROMPT AND SENT LOGIN OR SIGNUP");
+    use std::io;
+    use std::io::Write;
+
+    println!("\x1b[34mWelcome to RsMember!\x1b[0m\n");
+
+    let choice = get_user_choice().map_err(|_| Error::RsmFailed)?;
+
+    match choice {
+        Choice::Yes => todo!("IMPLEMENT YES PATH"),
+        Choice::No => {
+
+            println!("Create Account:");
+            print!("username: ");
+            io::stdout().flush().map_err(|_| Error::RsmFailed)?;
+
+            let mut username = String::new();
+            io::stdin().read_line(&mut username).map_err(|_| Error::RsmFailed)?;
+            
+            let password = rpassword::prompt_password("password: ").map_err(|_| Error::RsmFailed)?;
+            // TODO: send this to login
+            println!("DEBUG:{username}");
+            println!("DEBUG:{password}");
+        },
+    }
+
+    println!("Thank you!");
+    unimplemented!("create the account calling signup on the api");
+
     Ok(())
 }

@@ -1,7 +1,7 @@
 pub mod config_helper;
 pub mod table_formatter;
 
-use std::io::{self, Write};
+use std::io::{self};
 
 pub enum Choice {
     Yes,

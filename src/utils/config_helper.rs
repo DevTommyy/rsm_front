@@ -9,7 +9,7 @@ use serde_json::json;
 
 const CONFIG_FILE: &str = "rsm-conf.json";
 
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, Default)]
 pub struct Token(String);
 
 impl Into<String> for Token {

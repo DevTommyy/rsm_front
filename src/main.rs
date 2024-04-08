@@ -1,5 +1,7 @@
 // https://docs.rs/clap/latest/clap/_tutorial/chapter_0/index.html
 
+use std::io::Write;
+use std::io;
 use std::{collections::HashMap, path::PathBuf};
 
 use clap::{command, value_parser, Arg, ArgAction, ArgGroup, Command};
@@ -7,6 +9,7 @@ use parsers::LineRange;
 use utils::config_helper::{Config, Token};
 
 use crate::api::{ErrorResponse, SuccessfulResponse};
+use crate::utils::table_formatter::FormattedResponse;
 use crate::utils::{get_user_choice, Choice};
 use crate::{api::Api, error::Error};
 use crate::error::Result;
@@ -21,7 +24,7 @@ fn app_args() -> clap::ArgMatches {
         .subcommand_required(true)
         .arg_required_else_help(true)
         .subcommand(Command::new("new-key").about("Resets the account key")) //TODO: confirmation
-        .subcommand(Command::new("logout").about("Logout from the account")) // TODO confirmation
+        .subcommand(Command::new("logout").about("Logout from the account"))
         .subcommand(
             Command::new("list")
                 .about("List tables with specs or table contents")
@@ -177,19 +180,49 @@ fn main() -> Result<()> {
     //init config and if it is the first time running show the default prompt
     let mut config = Config::get_config()?;
 
-    let mut api = Api::new()?;
-
     let args = app_args();
     if config.first_run {
+        let api = Api::new_without_token();
         show_first_run_prompt(&api, &mut config)?;
         config.first_run = false;
         config.update_config()?;
-    }
-    api.update_token()?;
+    } 
+
+    let mut api = Api::new()?;
 
     match args.subcommand() {
         Some(("new-key", _)) => println!("'rsm new-key' was used"),
-        Some(("logout", _)) => println!("'rsm logout' was used"),
+        Some(("logout", _)) => {
+            println!("DEBUG:'rsm logout' was used");
+
+            print!("Do you really want to log out(yes, [no])");
+            std::io::stdout().flush().map_err(|_| Error::RsmFailed)?;
+            let choice = get_user_choice().map_err(|_| Error::RsmFailed)?;
+
+            let logout: bool = match choice {
+                Choice::Yes => true,
+                Choice::No => false,
+            };
+
+            match api.post_logout(logout) {
+                Ok(res) => {
+                    log::info!("Successfully sent GET request and received response");
+                    if logout {
+                        // reset config
+                        config.token = None;
+                        config.first_run = true;
+                        config.key = None;
+                    }
+                    res.print();
+                },
+                Err(err) => {
+                    log::error!("Error occurred while fetching tasks: {:?}", err);
+                    return Err(err);
+                }
+            }
+            config.update_config()?;
+            api.update_token()?;
+        },
         Some(("list", sub_matches)) => { 
             
             let tablename = sub_matches.get_one::<String>("tablename").map(|s| s.as_str());
@@ -259,27 +292,32 @@ fn main() -> Result<()> {
 fn show_first_run_prompt(api: &Api, config: &mut Config) -> Result<()> {
     println!("\x1b[34mWelcome to RsMember!\x1b[0m\n");
 
+    print!("do you already have a key([yes]/no): ");
+    std::io::stdout().flush().map_err(|_| Error::RsmFailed)?;
     let choice = get_user_choice().map_err(|_| Error::RsmFailed)?;
 
     match choice {
         // send login req
         Choice::Yes => {
-            let (key, token) = login(api)?;
+            let (key, token) = login(api).map_err(|e| {log::error!("{e:?}"); e})?;
             config.key = Some(key.0.replace("\n", ""));
             let token: String = token.into();
             config.token = Some(token.replace("\n", ""));
+
+            log::info!("successful login");
             Ok(())
         },
         // send signup req
         Choice::No => {
-            signup(api)?;
-
+            signup(api).map_err(|e| {log::error!("{e:?}"); e})?;
             println!("Log in:");
 
-            let (key, token) = login(api)?;
+            let (key, token) = login(api).map_err(|e| {log::error!("{e:?}"); e})?;
             config.key = Some(key.0.replace("\n", ""));
             let token: String = token.into();
             config.token = Some(token.replace("\n", ""));
+
+            log::info!("successful signup and login");
             Ok(())
         },
     }
@@ -294,7 +332,6 @@ impl From<String> for Key {
 }
 
 fn login(api: &Api) -> Result<(Key, Token)> {
-    use std::io;
     println!("Please input your key");
 
     let mut key = String::new();
@@ -310,15 +347,12 @@ fn login(api: &Api) -> Result<(Key, Token)> {
         return Err(Error::LoginFail);
     } else if res_type.is::<SuccessfulResponse>() {
         res.0.print();
-        println!("Welcome to this machine!");
+        println!("\x1b[34mWelcome to this machine!\x1b[0m\n");
     }
     Ok((key.into(), res.1.into()))
 }
 
 fn signup(api: &Api) -> Result<()> {
-    use std::io;
-    use std::io::Write;
-
     println!("Create Account:");
     print!("username: ");
     io::stdout().flush().map_err(|_| Error::RsmFailed)?;

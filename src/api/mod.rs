@@ -10,18 +10,22 @@ use serde::{Deserialize, Serialize};
 const BACKEND: &str = "http://100.97.63.15:10001";
 
 pub struct Api {
-    token: Token,
+    token: Option<Token>,
 }
 
 impl Api {
     pub fn new() -> Result<Api> {
         let token = Config::load_token()?;
-        Ok(Api { token })
+        Ok(Api { token: Some(token) })
+    }
+
+    pub fn new_without_token() -> Api {
+        Api { token: None }
     }
 
     pub fn update_token(&mut self) -> Result<Api> {
-        let token = Config::load_token()?;
-        Ok(Api { token })
+        let token = Config::load_token().map_or(Token::default(), |tok| tok);
+        Ok(Api { token: Some(token) })
     }
 }
 

@@ -45,7 +45,7 @@ impl Api {
             .build()
             .map_err(|_| Error::FailedToConnectToServer)?;
 
-        let token: String = self.token.clone().into();
+        let token: String = self.token.clone().unwrap_or_default().into();
         let table = match tablename {
             Some(name) => {
                 if ["reminder", "todo"].contains(&name) {

@@ -1,4 +1,4 @@
-use chrono::{format, NaiveDateTime};
+use chrono::NaiveDateTime;
 use reqwest::{blocking, header};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -70,7 +70,6 @@ impl Api {
             encoded_params.pop();
             url.push_str(&format!("?{}", encoded_params));
         }
-        println!("DEBUG: {url}");
 
         let mut response = client
             .get(url)

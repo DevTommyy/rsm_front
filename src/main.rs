@@ -4,8 +4,9 @@ use std::{collections::HashMap, path::PathBuf};
 
 use clap::{command, value_parser, Arg, ArgAction, ArgGroup, Command};
 use parsers::LineRange;
-use utils::config_helper::Config;
+use utils::config_helper::{Config, Token};
 
+use crate::api::{ErrorResponse, SuccessfulResponse};
 use crate::utils::{get_user_choice, Choice};
 use crate::{api::Api, error::Error};
 use crate::error::Result;
@@ -176,14 +177,15 @@ fn main() -> Result<()> {
     //init config and if it is the first time running show the default prompt
     let mut config = Config::get_config()?;
 
-    let api = Api::new()?;
+    let mut api = Api::new()?;
 
     let args = app_args();
     if config.first_run {
-        show_first_run_prompt()?;
+        show_first_run_prompt(&api, &mut config)?;
         config.first_run = false;
         config.update_config()?;
     }
+    api.update_token()?;
 
     match args.subcommand() {
         Some(("new-key", _)) => println!("'rsm new-key' was used"),
@@ -254,51 +256,89 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-/*
-Welcome to RsMember!
-
-do you already have a key([yes]/no)
-no
-Account creation:
-username: tizio123
-password: *****
-
-Your key is: 982y3hfhaajdf9011ahdf
-Account creation successful! 
-
-Use it in other devices to sync to your account
-
-Thank you!
-*/
-
-fn show_first_run_prompt() -> Result<()> {
-    use std::io;
-    use std::io::Write;
-
+fn show_first_run_prompt(api: &Api, config: &mut Config) -> Result<()> {
     println!("\x1b[34mWelcome to RsMember!\x1b[0m\n");
 
     let choice = get_user_choice().map_err(|_| Error::RsmFailed)?;
 
     match choice {
-        Choice::Yes => todo!("IMPLEMENT YES PATH"),
+        // send login req
+        Choice::Yes => {
+            let (key, token) = login(api)?;
+            config.key = Some(key.0.replace("\n", ""));
+            let token: String = token.into();
+            config.token = Some(token.replace("\n", ""));
+            Ok(())
+        },
+        // send signup req
         Choice::No => {
+            signup(api)?;
 
-            println!("Create Account:");
-            print!("username: ");
-            io::stdout().flush().map_err(|_| Error::RsmFailed)?;
+            println!("Log in:");
 
-            let mut username = String::new();
-            io::stdin().read_line(&mut username).map_err(|_| Error::RsmFailed)?;
-            
-            let password = rpassword::prompt_password("password: ").map_err(|_| Error::RsmFailed)?;
-            // TODO: send this to login
-            println!("DEBUG:{username}");
-            println!("DEBUG:{password}");
+            let (key, token) = login(api)?;
+            config.key = Some(key.0.replace("\n", ""));
+            let token: String = token.into();
+            config.token = Some(token.replace("\n", ""));
+            Ok(())
         },
     }
+}
 
-    println!("Thank you!");
-    unimplemented!("create the account calling signup on the api");
+struct Key(String);
 
+impl From<String> for Key {
+    fn from(value: String) -> Key {
+        Key(value)
+    }
+}
+
+fn login(api: &Api) -> Result<(Key, Token)> {
+    use std::io;
+    println!("Please input your key");
+
+    let mut key = String::new();
+    io::stdin().read_line(&mut key).map_err(|_| Error::RsmFailed)?;
+
+    let handle = terminal_spinners::SpinnerBuilder::new().spinner(&terminal_spinners::DOTS).text("Signing up...").start();
+    let res = api.post_login(&key)?;
+    handle.done();
+
+    let res_type = &res.0.as_any();
+    if res_type.is::<ErrorResponse>() {
+        res.0.print();
+        return Err(Error::LoginFail);
+    } else if res_type.is::<SuccessfulResponse>() {
+        res.0.print();
+        println!("Welcome to this machine!");
+    }
+    Ok((key.into(), res.1.into()))
+}
+
+fn signup(api: &Api) -> Result<()> {
+    use std::io;
+    use std::io::Write;
+
+    println!("Create Account:");
+    print!("username: ");
+    io::stdout().flush().map_err(|_| Error::RsmFailed)?;
+
+    let mut username = String::new();
+    io::stdin().read_line(&mut username).map_err(|_| Error::RsmFailed)?;
+    
+    let password = rpassword::prompt_password("password: ").map_err(|_| Error::RsmFailed)?;
+
+    let handle = terminal_spinners::SpinnerBuilder::new().spinner(&terminal_spinners::DOTS).text("Signing up...").start();
+    let res = api.post_signup(&username, &password)?;
+    handle.done();
+
+    let res_type = &res.as_any();
+    if res_type.is::<ErrorResponse>() {
+        res.print();
+        return Err(Error::FirstRunFailed);
+    } else if res_type.is::<SuccessfulResponse>() {
+        println!("Account creation successful, you can now log in!");
+        res.print();
+    }
     Ok(())
 }

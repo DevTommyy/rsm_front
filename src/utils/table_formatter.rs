@@ -1,25 +1,51 @@
 // format the table to be shown in a pretty manner
 use crate::api::api_list::{GetTaskResponse, TableCharacteristicsResponse};
-use crate::api::ErrorResponse;
+use crate::api::{ErrorResponse, SuccessfulResponse};
 use std::fmt::Display;
 
 // -- Custom trait impl
 pub trait FormattedResponse {
     fn print(&self);
+
+    fn as_any(&self) -> &dyn std::any::Any;
 }
+
 impl FormattedResponse for GetTaskResponse {
     fn print(&self) {
         println!("{}", self);
     }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
 }
+
 impl FormattedResponse for TableCharacteristicsResponse {
     fn print(&self) {
         println!("{}", self);
     }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
 }
+
 impl FormattedResponse for ErrorResponse {
     fn print(&self) {
         println!("{}", self);
+    }
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
+    }
+}
+
+impl FormattedResponse for SuccessfulResponse {
+    fn print(&self) {
+        println!("{}", self);
+    }
+
+    fn as_any(&self) -> &dyn std::any::Any {
+        self
     }
 }
 
@@ -39,6 +65,16 @@ impl Display for ErrorResponse {
             f,
             "+ - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +"
         )?;
+        Ok(())
+    }
+}
+
+impl Display for SuccessfulResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let line = "-".repeat(100);
+        writeln!(f, "+ {} +", line)?;
+        writeln!(f, "| {:<100} |", self.res)?;
+        writeln!(f, "+ {} +", line)?;
         Ok(())
     }
 }

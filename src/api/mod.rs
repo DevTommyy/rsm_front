@@ -1,4 +1,5 @@
 // modules_definition
+pub mod api_auth;
 pub mod api_list;
 
 // -- general api utils definitions
@@ -17,6 +18,11 @@ impl Api {
         let token = Config::load_token()?;
         Ok(Api { token })
     }
+
+    pub fn update_token(&mut self) -> Result<Api> {
+        let token = Config::load_token()?;
+        Ok(Api { token })
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -29,6 +35,11 @@ pub struct ErrorDetail {
     pub req_uuid: String,
     #[serde(rename = "type")]
     pub error_type: ErrorType,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct SuccessfulResponse {
+    pub res: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

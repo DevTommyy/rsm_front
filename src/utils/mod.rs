@@ -18,6 +18,7 @@ impl Choice {
     }
 }
 
+/// prompts the user asking if he has already a key, and retrives his choice
 pub fn get_user_choice() -> std::io::Result<Choice> {
     loop {
         print!("do you already have a key([yes]/no): ");

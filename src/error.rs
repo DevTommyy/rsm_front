@@ -18,4 +18,5 @@ pub enum Error {
     FirstRunFailed,
     NoAuth,
     RsmFailed,
+    LoginFail,
 }

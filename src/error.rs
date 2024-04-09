@@ -19,4 +19,5 @@ pub enum Error {
     NoAuth,
     RsmFailed,
     LoginFail,
+    FailedToUpdateKey,
 }

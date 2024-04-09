@@ -9,7 +9,6 @@ use parsers::LineRange;
 use utils::config_helper::{Config, Token};
 
 use crate::api::{ErrorResponse, SuccessfulResponse};
-use crate::utils::table_formatter::FormattedResponse;
 use crate::utils::{get_user_choice, Choice};
 use crate::{api::Api, error::Error};
 use crate::error::Result;
@@ -181,21 +180,63 @@ fn main() -> Result<()> {
     let mut config = Config::get_config()?;
 
     let args = app_args();
-    if config.first_run {
-        let api = Api::new_without_token();
-        show_first_run_prompt(&api, &mut config)?;
-        config.first_run = false;
-        config.update_config()?;
-    } 
+    
 
-    let mut api = Api::new()?;
+    let mut api = if !args.subcommand_matches("new-key").is_some() {
+        if config.first_run {
+            let api = Api::new_without_token();
+            show_first_run_prompt(&api, &mut config)?;
+            config.first_run = false;
+            config.update_config()?;
+        } 
+        Api::new()?
+    } else {
+        Api::new_without_token()
+    };
+
 
     match args.subcommand() {
-        Some(("new-key", _)) => println!("'rsm new-key' was used"),
+        Some(("new-key", _)) => {
+            println!("DEBUG:'rsm new-key' was used");
+
+            println!("Please input your credentials: \n");
+            print!("username: ");
+            io::stdout().flush().map_err(|_| Error::RsmFailed)?;
+
+            let mut username = String::new();
+            io::stdin().read_line(&mut username).map_err(|_| Error::RsmFailed)?;
+            
+            let password = rpassword::prompt_password("password: ").map_err(|_| Error::RsmFailed)?;
+
+            let handle = terminal_spinners::SpinnerBuilder::new().spinner(&terminal_spinners::DOTS).text("Making a new key...").start();
+            let res = api.post_lostkey(&username, &password)?;
+            handle.done();
+            log::info!("Successfully sent GET lostkey request and received response");
+
+            let res_type = &res.as_any();
+            if res_type.is::<ErrorResponse>() {
+                res.print();
+                return Err(Error::FailedToUpdateKey);
+            } else if res_type.is::<SuccessfulResponse>() {
+                res.print();
+                println!("\x1b[34mNow login again\x1b[0m\n");
+                config.first_run = true;
+                config.update_config()?;
+
+                let (key, token) = login(&api).map_err(|e| {log::error!("{e:?}"); e})?;
+                config.key = Some(key.0.replace("\n", ""));
+                let token: String = token.into();
+                config.token = Some(token.replace("\n", ""));
+                config.first_run = false;
+                config.update_config()?;
+
+                log::info!("successful key change process");
+            }
+        },
         Some(("logout", _)) => {
             println!("DEBUG:'rsm logout' was used");
 
-            print!("Do you really want to log out(yes, [no])");
+            print!("Do you really want to log out(yes, [no]): ");
             std::io::stdout().flush().map_err(|_| Error::RsmFailed)?;
             let choice = get_user_choice().map_err(|_| Error::RsmFailed)?;
 
@@ -206,7 +247,7 @@ fn main() -> Result<()> {
 
             match api.post_logout(logout) {
                 Ok(res) => {
-                    log::info!("Successfully sent GET request and received response");
+                    log::info!("Successfully sent GET logout request and received response");
                     if logout {
                         // reset config
                         config.token = None;
@@ -241,7 +282,7 @@ fn main() -> Result<()> {
 
             match api.get_tasks(tablename, opts_map) {
                 Ok(res) => {
-                    log::info!("Successfully sent GET request and received response");
+                    log::info!("Successfully sent GET list request and received response");
                     res.print();
                 },
                 Err(err) => {
@@ -250,15 +291,18 @@ fn main() -> Result<()> {
                 }
             }
         },
+        // TODO:
         Some(("create", sub_matches)) => println!(
             "'rsm create' was used, tablename is: {:?}, and due is {:?}",
             sub_matches.get_one::<String>("tablename").unwrap(),
             sub_matches.get_one::<bool>("due")
         ),
+        // TODO:
         Some(("drop", sub_matches)) => println!(
             "'rsm drop' was used, tablename is: {:?}",
             sub_matches.get_one::<String>("tablename").unwrap()
         ),
+        // TODO:
         Some(("add", sub_matches)) => println!(
             "'rsm add' was used, tablename is: {:?}, task is {:?}, file is {:?}, line is {:?}, range is {:?}, due is {:?}, group is {:?}",
             sub_matches.get_one::<String>("tablename"),
@@ -269,21 +313,24 @@ fn main() -> Result<()> {
             sub_matches.get_one::<String>("due"),
             sub_matches.get_one::<String>("group"),
         ),
+        // TODO:
         Some(("remove", sub_matches)) => println!(
             "'rsm remove' was used, tablename is: {:?}, id is {:?}",
             sub_matches.get_one::<String>("tablename").unwrap(),
             sub_matches.get_one::<u8>("id").unwrap(),
         ),
+        // TODO:
         Some(("update", sub_matches)) => println!(
             "'rsm update' was used, tablename is: {:?}, id is {:?}",
             sub_matches.get_one::<String>("tablename").unwrap(),
             sub_matches.get_one::<u8>("id").unwrap()
         ),
+        // TODO:
         Some(("clear", sub_matches)) => println!(
             "'rsm clear' was used, tablename is: {:?}",
             sub_matches.get_one::<String>("tablename").unwrap()
         ),
-        _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
+        _ => unreachable!("If you are reading this something really bad happened"),
     }
 
     Ok(())

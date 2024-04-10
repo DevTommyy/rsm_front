@@ -141,7 +141,7 @@ impl std::fmt::Display for TableCharacteristicsResponse {
         )?;
         writeln!(f, "| ------------------------------- | ------------- |")?;
         for table in &self.res {
-            writeln!(f, "| {:<28}| {:<14}|", table.name, table.has_due)?;
+            writeln!(f, "| {:<32}| {:<14}|", table.name, table.has_due)?;
         }
         writeln!(f, "+ ------------------------------- + ------------- +")?;
         Ok(())

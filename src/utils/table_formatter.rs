@@ -102,31 +102,63 @@ impl Display for SuccessfulResponse {
 }
 impl std::fmt::Display for GetTaskResponse {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(
-            f,
-            "+ -------------------------------------------------------------------------- + ------------------- + ------------------- +"
-        )?;
-        writeln!(f, "| \x1b[34mTASK\x1b[0m {:<69} | \x1b[34mDUE\x1b[0m                 | \x1b[34mGROUP\x1b[0m               |", " ")?;
-        writeln!(
-            f,
-            "+ -------------------------------------------------------------------------- + ------------------- + ------------------- +"
-        )?;
-        for detail in &self.res {
+        if self.res.iter().all(|res| res.due.is_none()) {
             writeln!(
                 f,
-                "| {:<75}| {:<20}| {:<20}|",
-                detail.description,
-                detail.due.map_or_else(
-                    || "None".to_string(),
-                    |due| due.format("%Y-%m-%d %H:%M:%S").to_string()
-                ),
-                detail.group
+                "+ ------------------------------------------------------------------------------------ + ------------------- +"
+            )?;
+            writeln!(
+                f,
+                "| \x1b[34mTASK\x1b[0m {:<79} | \x1b[34mGROUP\x1b[0m               |",
+                " "
+            )?; // Due and group columns inverted
+            writeln!(
+                f,
+                "+ ------------------------------------------------------------------------------------ + ------------------- +"
+            )?;
+            for detail in &self.res {
+                writeln!(
+                    f,
+                    "| {:<85}| {:<20}|",
+                    detail.description,
+                    detail.group, // Group now printed before due
+                )?;
+            }
+            writeln!(
+                f,
+                "+ ------------------------------------------------------------------------------------ + ------------------- +"
+            )?;
+        } else {
+            writeln!(
+                f,
+                "+ -------------------------------------------------------------------------- + ------------------- + ------------------- +"
+            )?;
+            writeln!(
+                f,
+                "| \x1b[34mTASK\x1b[0m {:<69} | \x1b[34mGROUP\x1b[0m               | \x1b[34mDUE\x1b[0m                 |",
+                " "
+            )?; // Due and group columns inverted
+            writeln!(
+                f,
+                "+ -------------------------------------------------------------------------- + ------------------- + ------------------- +"
+            )?;
+            for detail in &self.res {
+                writeln!(
+                    f,
+                    "| {:<75}| {:<20}| {:<20}|",
+                    detail.description,
+                    detail.group, // Group now printed before due
+                    detail.due.map_or_else(
+                        || "None".to_string(),
+                        |due| due.format("%Y-%m-%d %H:%M:%S").to_string()
+                    ),
+                )?;
+            }
+            writeln!(
+                f,
+                "+ -------------------------------------------------------------------------- + ------------------- + ------------------- +"
             )?;
         }
-        writeln!(
-            f,
-            "+ -------------------------------------------------------------------------- + ------------------- + ------------------- +"
-        )?;
         Ok(())
     }
 }

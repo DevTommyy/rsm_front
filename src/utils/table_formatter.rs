@@ -104,17 +104,17 @@ impl std::fmt::Display for GetTaskResponse {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "+ ------------------------------------- + ------------------- + ------------------- +"
+            "+ -------------------------------------------------------------------------- + ------------------- + ------------------- +"
         )?;
-        writeln!(f, "| \x1b[34mTASK\x1b[0m                                  | \x1b[34mDUE\x1b[0m                 | \x1b[34mGROUP\x1b[0m               |")?;
+        writeln!(f, "| \x1b[34mTASK\x1b[0m {:<69} | \x1b[34mDUE\x1b[0m                 | \x1b[34mGROUP\x1b[0m               |", " ")?;
         writeln!(
             f,
-            "+ ------------------------------------- + ------------------- + ------------------- +"
+            "+ -------------------------------------------------------------------------- + ------------------- + ------------------- +"
         )?;
         for detail in &self.res {
             writeln!(
                 f,
-                "| {:<38}| {:<20}| {:<20}|",
+                "| {:<75}| {:<20}| {:<20}|",
                 detail.description,
                 detail.due.map_or_else(
                     || "None".to_string(),
@@ -125,7 +125,7 @@ impl std::fmt::Display for GetTaskResponse {
         }
         writeln!(
             f,
-            "+ ------------------------------------- + ------------------- + ------------------- +"
+            "+ -------------------------------------------------------------------------- + ------------------- + ------------------- +"
         )?;
         Ok(())
     }
@@ -133,16 +133,17 @@ impl std::fmt::Display for GetTaskResponse {
 
 impl std::fmt::Display for TableCharacteristicsResponse {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "+ ----------------- + ------------- +")?;
+        writeln!(f, "+ ------------------------------- + ------------- +")?;
         writeln!(
             f,
-            "| \x1b[34mTABLE NAME\x1b[0m        | \x1b[34mSUPPORTS DUE\x1b[0m  |"
+            "| \x1b[34mTABLE NAME\x1b[0m {:<20} | \x1b[34mSUPPORTS DUE\x1b[0m  |",
+            " "
         )?;
-        writeln!(f, "| ----------------- | ------------- |")?;
+        writeln!(f, "| ------------------------------- | ------------- |")?;
         for table in &self.res {
-            writeln!(f, "| {:<18}| {:<14}|", table.name, table.has_due)?;
+            writeln!(f, "| {:<28}| {:<14}|", table.name, table.has_due)?;
         }
-        writeln!(f, "+ ----------------- + ------------- +")?;
+        writeln!(f, "+ ------------------------------- + ------------- +")?;
         Ok(())
     }
 }

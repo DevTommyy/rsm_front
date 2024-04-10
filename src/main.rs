@@ -356,7 +356,6 @@ fn main() -> Result<()> {
                 }
             }
         }
-        // TODO:
         Some(("create", sub_matches)) => {
             let tablename = sub_matches
                 .get_one::<String>("tablename")
@@ -384,11 +383,27 @@ fn main() -> Result<()> {
                 }
             }
         }
-        // TODO:
-        Some(("drop", sub_matches)) => println!(
-            "DEBUG:'rsm drop' was used, tablename is: {:?}",
-            sub_matches.get_one::<String>("tablename").unwrap()
-        ),
+        Some(("drop", sub_matches)) => {
+            let tablename = sub_matches
+                .get_one::<String>("tablename")
+                .map(|s| s.to_owned())
+                .unwrap();
+
+            println!("DEBUG:'rsm drop' was used, tablename is: {:?}", tablename);
+
+            match api.remove_table(tablename) {
+                Ok(res) => {
+                    log::info!(
+                        "Successfully sent DELETE remove table request and received response"
+                    );
+                    res.print();
+                }
+                Err(err) => {
+                    log::error!("Error occurred while fetching tasks: {:?}", err);
+                    return Err(err);
+                }
+            }
+        }
         Some(("add", sub_matches)) => {
             // if tablename isnt present something really wrong happened
             let tablename = sub_matches

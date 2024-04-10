@@ -15,9 +15,13 @@ pub enum Error {
     InvalidServerResponse,
 
     // -- Other errors
+    RsmFailed, // basically status code 500
     FirstRunFailed,
-    NoAuth,
-    RsmFailed,
-    LoginFail,
     FailedToUpdateKey,
+    FailedToResolveFile { detail: String },
+    InvalidDate,
+
+    // -- Auth errors
+    NoAuth,
+    LoginFail,
 }

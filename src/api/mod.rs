@@ -1,4 +1,5 @@
 // modules_definition
+pub mod api_add;
 pub mod api_auth;
 pub mod api_list;
 

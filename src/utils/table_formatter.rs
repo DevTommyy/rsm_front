@@ -71,9 +71,10 @@ impl Display for ErrorResponse {
 
 impl Display for SuccessfulResponse {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let line = "-".repeat(100);
+        let len = self.res.len();
+        let line = "-".repeat(len + 2);
         writeln!(f, "+ {} +", line)?;
-        writeln!(f, "| {:<100} |", self.res)?;
+        writeln!(f, "| {:<width$} |", self.res, width = len + 2)?;
         writeln!(f, "+ {} +", line)?;
         Ok(())
     }

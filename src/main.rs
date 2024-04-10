@@ -9,7 +9,8 @@ use parsers::LineRange;
 use utils::config_helper::{Config, Token};
 
 use crate::api::{ErrorResponse, SuccessfulResponse};
-use crate::utils::{get_user_choice, Choice};
+use crate::parsers::Due;
+use crate::utils::{get_user_choice, resolve_file_input, Choice};
 use crate::{api::Api, error::Error};
 use crate::error::Result;
 
@@ -120,8 +121,8 @@ fn app_args() -> clap::ArgMatches {
                     Arg::new("due")
                         .long("due")
                         .short('d')
-                        .help("The due of the task")
-                        .value_parser(value_parser!(String)),
+                        .help("The due of the task in one of the formats: 'hh:mm' or 'YYYY-MM-dd hh:mm'")
+                        .value_parser(value_parser!(Due)),
                 )
                 .arg(
                     Arg::new("group")
@@ -257,7 +258,7 @@ fn main() -> Result<()> {
                     res.print();
                 },
                 Err(err) => {
-                    log::error!("Error occurred while fetching tasks: {:?}", err);
+                    log::error!("Error occurred while logging out: {:?}", err);
                     return Err(err);
                 }
             }
@@ -303,16 +304,55 @@ fn main() -> Result<()> {
             sub_matches.get_one::<String>("tablename").unwrap()
         ),
         // TODO:
-        Some(("add", sub_matches)) => println!(
-            "'rsm add' was used, tablename is: {:?}, task is {:?}, file is {:?}, line is {:?}, range is {:?}, due is {:?}, group is {:?}",
-            sub_matches.get_one::<String>("tablename"),
-            sub_matches.get_one::<String>("task"),
-            sub_matches.get_one::<PathBuf>("file"),
-            sub_matches.get_one::<u16>("line"),
-            sub_matches.get_one::<LineRange>("range"),
-            sub_matches.get_one::<String>("due"),
-            sub_matches.get_one::<String>("group"),
-        ),
+        Some(("add", sub_matches)) => { 
+            // if tablename isnt present something really wrong happened
+            let tablename = sub_matches.get_one::<String>("tablename").map(|s| s.clone()).unwrap();
+            let task = sub_matches.get_one::<String>("task");
+            let file = sub_matches.get_one::<PathBuf>("file");
+            let line = sub_matches.get_one::<u16>("line");
+            let range = sub_matches.get_one::<LineRange>("range");
+            let due = sub_matches.get_one::<Due>("due");
+            let group = sub_matches.get_one::<String>("group");
+
+            println!(
+                "DEBUG: 'rsm add' was used, tablename is: {:?}, task is {:?}, file is {:?}, line is {:?}, range is {:?}, due is {:?}, group is {:?}",
+                tablename, task, file, line, range, due, group
+            );
+
+            // get the task
+            let task = if let Some(file) = file {
+                // file input
+                let task = resolve_file_input(file, line, range).map_err(|e| Error::FailedToResolveFile { detail: e.to_string() })?;
+                task
+            } else {
+                // text input
+                task.map_or("".to_owned(), |task| task.clone())
+            };
+             
+            let mut opts_map: HashMap<&str, &str> = HashMap::new();
+            if let Some(due) = due {
+                opts_map.insert("due", &due.0);
+            }
+
+            if let Some(group) = group {
+                opts_map.insert("group", group);
+            }
+
+            opts_map.insert("description", &task);
+
+            match api.add_task(tablename, opts_map) {
+                Ok(res) => {
+                    log::info!("Successfully sent GET add request and received response");
+                    res.print();
+                },
+                Err(err) => {
+                    log::error!("Error occurred while adding task: {:?}", err);
+                    return Err(err);
+                }
+            }
+
+        }
+        ,
         // TODO:
         Some(("remove", sub_matches)) => println!(
             "'rsm remove' was used, tablename is: {:?}, id is {:?}",

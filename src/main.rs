@@ -23,7 +23,7 @@ fn app_args() -> clap::ArgMatches {
     command!()
         .subcommand_required(true)
         .arg_required_else_help(true)
-        .subcommand(Command::new("new-key").about("Resets the account key")) //TODO: confirmation
+        .subcommand(Command::new("new-key").about("Resets the account key"))
         .subcommand(Command::new("logout").about("Logout from the account"))
         .subcommand(
             Command::new("list")
@@ -200,7 +200,7 @@ fn main() -> Result<()> {
         Some(("new-key", _)) => {
             println!("DEBUG:'rsm new-key' was used");
 
-            println!("Please input your credentials: \n");
+            println!("Please input your credentials: ");
             print!("username: ");
             io::stdout().flush().map_err(|_| Error::RsmFailed)?;
 
@@ -209,10 +209,12 @@ fn main() -> Result<()> {
             
             let password = rpassword::prompt_password("password: ").map_err(|_| Error::RsmFailed)?;
 
+            // prettier output
+            println!("");
             let handle = terminal_spinners::SpinnerBuilder::new().spinner(&terminal_spinners::DOTS).text("Making a new key...").start();
             let res = api.post_lostkey(&username, &password)?;
             handle.done();
-            log::info!("Successfully sent GET lostkey request and received response");
+            log::info!("Successfully sent POST lostkey request and received response");
 
             let res_type = &res.as_any();
             if res_type.is::<ErrorResponse>() {
@@ -248,7 +250,7 @@ fn main() -> Result<()> {
 
             match api.post_logout(logout) {
                 Ok(res) => {
-                    log::info!("Successfully sent GET logout request and received response");
+                    log::info!("Successfully sent POST logout request and received response");
                     if logout {
                         // reset config
                         config.token = None;
@@ -294,16 +296,15 @@ fn main() -> Result<()> {
         },
         // TODO:
         Some(("create", sub_matches)) => println!(
-            "'rsm create' was used, tablename is: {:?}, and due is {:?}",
+            "DEBUG:'rsm create' was used, tablename is: {:?}, and due is {:?}",
             sub_matches.get_one::<String>("tablename").unwrap(),
             sub_matches.get_one::<bool>("due")
         ),
         // TODO:
         Some(("drop", sub_matches)) => println!(
-            "'rsm drop' was used, tablename is: {:?}",
+            "DEBUG:'rsm drop' was used, tablename is: {:?}",
             sub_matches.get_one::<String>("tablename").unwrap()
         ),
-        // TODO:
         Some(("add", sub_matches)) => { 
             // if tablename isnt present something really wrong happened
             let tablename = sub_matches.get_one::<String>("tablename").map(|s| s.clone()).unwrap();
@@ -342,7 +343,7 @@ fn main() -> Result<()> {
 
             match api.add_task(tablename, opts_map) {
                 Ok(res) => {
-                    log::info!("Successfully sent GET add request and received response");
+                    log::info!("Successfully sent POST add request and received response");
                     res.print();
                 },
                 Err(err) => {
@@ -354,20 +355,35 @@ fn main() -> Result<()> {
         }
         ,
         // TODO:
-        Some(("remove", sub_matches)) => println!(
-            "'rsm remove' was used, tablename is: {:?}, id is {:?}",
-            sub_matches.get_one::<String>("tablename").unwrap(),
-            sub_matches.get_one::<u8>("id").unwrap(),
-        ),
+        Some(("remove", sub_matches)) => { 
+            println!(
+                "DEBUG:'rsm remove' was used, tablename is: {:?}, desc is {:?}",
+                sub_matches.get_one::<String>("tablename").unwrap(),
+                sub_matches.get_one::<String>("desc").unwrap()
+            );
+            let tablename = sub_matches.get_one::<String>("tablename").map(|s| s.to_owned()).unwrap();
+            let desc = sub_matches.get_one::<String>("desc").map(|s| s.to_owned()).unwrap();
+
+            match api.remove_task(tablename, desc) {
+                Ok(res) => {
+                    log::info!("Successfully sent DELETE task request and received response");
+                    res.print();
+                },
+                Err(err) => {
+                    log::error!("Error occurred while removing task: {:?}", err);
+                    return Err(err);
+                }
+            }
+        },
         // TODO:
         Some(("update", sub_matches)) => println!(
-            "'rsm update' was used, tablename is: {:?}, id is {:?}",
+            "DEBUG:'rsm update' was used, tablename is: {:?}, id is {:?}",
             sub_matches.get_one::<String>("tablename").unwrap(),
             sub_matches.get_one::<u8>("id").unwrap()
         ),
         // TODO:
         Some(("clear", sub_matches)) => println!(
-            "'rsm clear' was used, tablename is: {:?}",
+            "DEBUG:'rsm clear' was used, tablename is: {:?}",
             sub_matches.get_one::<String>("tablename").unwrap()
         ),
         _ => unreachable!("If you are reading this something really bad happened"),
@@ -424,6 +440,8 @@ fn login(api: &Api) -> Result<(Key, Token)> {
     let mut key = String::new();
     io::stdin().read_line(&mut key).map_err(|_| Error::RsmFailed)?;
 
+    // prettier output
+    println!("");
     let handle = terminal_spinners::SpinnerBuilder::new().spinner(&terminal_spinners::DOTS).text("Signing up...").start();
     let res = api.post_login(&key)?;
     handle.done();
@@ -449,6 +467,8 @@ fn signup(api: &Api) -> Result<()> {
     
     let password = rpassword::prompt_password("password: ").map_err(|_| Error::RsmFailed)?;
 
+    // prettier output
+    println!("");
     let handle = terminal_spinners::SpinnerBuilder::new().spinner(&terminal_spinners::DOTS).text("Signing up...").start();
     let res = api.post_signup(&username, &password)?;
     handle.done();

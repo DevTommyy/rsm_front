@@ -1,8 +1,7 @@
-use std::collections::HashMap;
 use std::io::Read;
 
 use reqwest::{blocking, header};
-use serde_json::json;
+use urlencoding::encode;
 
 use crate::api::{ErrorResponse, SuccessfulResponse};
 use crate::error::{Error, Result};
@@ -11,10 +10,10 @@ use crate::utils::table_formatter::FormattedResponse;
 use super::{Api, BACKEND};
 
 impl Api {
-    pub fn add_task(
+    pub fn remove_task(
         &self,
         tablename: String,
-        body: HashMap<&str, &str>,
+        desc: String,
     ) -> Result<Box<dyn FormattedResponse>> {
         let client = blocking::Client::builder()
             .cookie_store(true)
@@ -22,14 +21,12 @@ impl Api {
             .map_err(|_| Error::FailedToConnectToServer)?;
 
         let token: String = self.token.clone().unwrap_or_default().into();
-        let url = format!("{}/{}", BACKEND, tablename);
-        let body = json!(body).to_string();
+        let url_encoded_desc = encode(&desc);
+        let url = format!("{}/{}/{}", BACKEND, tablename, url_encoded_desc);
 
         let mut response = client
-            .post(url)
+            .delete(url)
             .header(header::COOKIE, token)
-            .header(header::CONTENT_TYPE, "application/json")
-            .body(body)
             .send()
             .map_err(|_| Error::FailedToConnectToServer)?;
 

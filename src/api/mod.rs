@@ -2,6 +2,7 @@
 pub mod api_add;
 pub mod api_auth;
 pub mod api_list;
+pub mod api_remove;
 
 // -- general api utils definitions
 use crate::utils::config_helper::Token;

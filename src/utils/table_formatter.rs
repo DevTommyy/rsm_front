@@ -85,7 +85,8 @@ impl Display for SuccessfulResponse {
             write!(f, "\x1b[32m")?;
             write!(f, "{}", &self.res[start_idx..=end_idx])?;
             write!(f, "\x1b[0m")?;
-            writeln!(f, "{}", &self.res[end_idx + 1..])?;
+            write!(f, "{}", &self.res[end_idx + 1..])?;
+            writeln!(f, " {:<2}|", " ")?;
             writeln!(f, "+ {} +", line)?;
         } else {
             writeln!(f, "+ {} +", line)?;

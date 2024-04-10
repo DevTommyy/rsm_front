@@ -33,6 +33,7 @@ pub fn get_user_choice() -> io::Result<Choice> {
         }
     }
 }
+
 pub fn resolve_file_input(
     file: &PathBuf,
     line: Option<&u16>,        // Changed type to usize for line number
@@ -60,7 +61,7 @@ pub fn resolve_file_input(
             let start_index = *range.0.start() as usize - 1;
             let end_index = min(end, lines.len());
 
-            lines[start_index..end_index].join("\n").trim().to_owned()
+            lines[start_index..end_index].join(" ").trim().to_owned()
         }
         _ => content.trim().to_owned(),
     };

@@ -447,7 +447,6 @@ fn main() -> Result<()> {
                 }
             }
         }
-        // TODO:
         Some(("update", sub_matches)) => {
             // if tablename or the old desc isnt present something really wrong happened
             let tablename = sub_matches
@@ -505,11 +504,24 @@ fn main() -> Result<()> {
                 }
             }
         }
-        // TODO:
-        Some(("clear", sub_matches)) => println!(
-            "DEBUG:'rsm clear' was used, tablename is: {:?}",
-            sub_matches.get_one::<String>("tablename").unwrap()
-        ),
+        Some(("clear", sub_matches)) => {
+            let tablename = sub_matches
+                .get_one::<String>("tablename")
+                .map(|s| s.to_owned())
+                .unwrap();
+            println!("DEBUG:'rsm clear' was used, tablename is: {:?}", tablename);
+
+            match api.clear_table(tablename) {
+                Ok(res) => {
+                    log::info!("Successfully sent DELETE clear request and received response");
+                    res.print();
+                }
+                Err(err) => {
+                    log::error!("Error occurred while adding task: {:?}", err);
+                    return Err(err);
+                }
+            }
+        }
         _ => unreachable!("If you are reading this something really bad happened"),
     }
 

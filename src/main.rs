@@ -226,7 +226,11 @@ fn app_args() -> clap::ArgMatches {
 
 fn main() -> Result<()> {
     // init logger
-    log4rs::init_file("log/logger-config.yaml", Default::default()).unwrap();
+    log4rs::init_file(
+        "/home/devtommy/Codes/Rust/rsmember/cli_client/log/logger-config.yaml",
+        Default::default(),
+    )
+    .unwrap();
 
     //init config and if it is the first time running show the default prompt
     let mut config = Config::get_config()?;
@@ -247,8 +251,6 @@ fn main() -> Result<()> {
 
     match args.subcommand() {
         Some(("new-key", _)) => {
-            println!("DEBUG:'rsm new-key' was used");
-
             println!("Please input your credentials: ");
             print!("username: ");
             io::stdout().flush().map_err(|_| Error::RsmFailed)?;
@@ -295,8 +297,6 @@ fn main() -> Result<()> {
             }
         }
         Some(("logout", _)) => {
-            println!("DEBUG:'rsm logout' was used");
-
             print!("Do you really want to log out(yes, [no]): ");
             std::io::stdout().flush().map_err(|_| Error::RsmFailed)?;
             let choice = get_user_choice().map_err(|_| Error::RsmFailed)?;
@@ -332,11 +332,6 @@ fn main() -> Result<()> {
             let group = sub_matches.get_one::<String>("group").map(|s| s.as_str());
             let sort_key = sub_matches.get_one::<String>("sort-by").map(|s| s.as_str());
 
-            println!(
-                "DEBUG: 'rsm list' was used, tablename is: {:?}, group is: {:?}, sort key is: {:?}",
-                tablename, group, sort_key
-            );
-
             let mut opts_map: HashMap<&str, &str> = HashMap::new();
             if let Some(group_value) = group {
                 opts_map.insert("group", group_value);
@@ -367,11 +362,6 @@ fn main() -> Result<()> {
                 .map(|b| b.clone())
                 .unwrap();
 
-            println!(
-                "DEBUG:'rsm create' was used, tablename is: {:?}, and due is {:?}",
-                tablename, has_due
-            );
-
             match api.create_table(tablename, has_due) {
                 Ok(res) => {
                     log::info!("Successfully sent POST create table request and received response");
@@ -388,8 +378,6 @@ fn main() -> Result<()> {
                 .get_one::<String>("tablename")
                 .map(|s| s.to_owned())
                 .unwrap();
-
-            println!("DEBUG:'rsm drop' was used, tablename is: {:?}", tablename);
 
             match api.remove_table(tablename) {
                 Ok(res) => {
@@ -416,11 +404,6 @@ fn main() -> Result<()> {
             let range = sub_matches.get_one::<LineRange>("range");
             let due = sub_matches.get_one::<Due>("due");
             let group = sub_matches.get_one::<String>("group");
-
-            println!(
-                "DEBUG: 'rsm add' was used, tablename is: {:?}, task is {:?}, file is {:?}, line is {:?}, range is {:?}, due is {:?}, group is {:?}",
-                tablename, task, file, line, range, due, group
-            );
 
             // get the task
             let task = if let Some(file) = file {
@@ -459,11 +442,6 @@ fn main() -> Result<()> {
             }
         }
         Some(("remove", sub_matches)) => {
-            println!(
-                "DEBUG:'rsm remove' was used, tablename is: {:?}, desc is {:?}",
-                sub_matches.get_one::<String>("tablename").unwrap(),
-                sub_matches.get_one::<String>("desc").unwrap()
-            );
             let tablename = sub_matches
                 .get_one::<String>("tablename")
                 .map(|s| s.to_owned())
@@ -500,11 +478,6 @@ fn main() -> Result<()> {
             let range = sub_matches.get_one::<LineRange>("range");
             let due = sub_matches.get_one::<Due>("due");
             let group = sub_matches.get_one::<String>("group");
-
-            println!(
-                "DEBUG: 'rsm update' was used, tablename is: {:?}, old_desc is: {:?}, task is {:?}, file is {:?}, line is {:?}, range is {:?}, due is {:?}, group is {:?}",
-                tablename, old_desc, task, file, line, range, due, group
-            );
 
             let task = if let Some(file) = file {
                 // file input
@@ -546,7 +519,6 @@ fn main() -> Result<()> {
                 .get_one::<String>("tablename")
                 .map(|s| s.to_owned())
                 .unwrap();
-            println!("DEBUG:'rsm clear' was used, tablename is: {:?}", tablename);
 
             match api.clear_table(tablename) {
                 Ok(res) => {

@@ -7,7 +7,7 @@ use crate::error::{Error, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-const CONFIG_FILE: &str = "rsm-conf.json";
+const CONFIG_FILE: &str = "/home/devtommy/Codes/Rust/rsmember/cli_client/rsm-conf.json";
 
 #[derive(Deserialize, Clone, Default)]
 pub struct Token(String);

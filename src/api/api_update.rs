@@ -32,7 +32,6 @@ impl Api {
         let url_formatted_desc = encode(&old_desc);
         let url = format!("{}/{}/{}", BACKEND, tablename, url_formatted_desc);
         let body = json!(body).to_string();
-        println!("DEBUG: {url}");
 
         let mut response = client
             .put(url)

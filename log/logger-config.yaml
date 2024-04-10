@@ -1,7 +1,7 @@
 appenders:
   file_logger:
     kind: file
-    path: "log/rsm-log.log"
+    path: "/home/devtommy/Codes/Rust/rsmember/cli_client/log/rsm-log.log"
     encoder:
       pattern: "{d(%Y-%m-%d %H:%M:%S)(utc)} - {h({l})}: {m}{n}"
 root:

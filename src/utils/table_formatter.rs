@@ -73,9 +73,25 @@ impl Display for SuccessfulResponse {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let len = self.res.len();
         let line = "-".repeat(len + 2);
-        writeln!(f, "+ {} +", line)?;
-        writeln!(f, "| {:<width$} |", self.res, width = len + 2)?;
-        writeln!(f, "+ {} +", line)?;
+
+        if let Some(start_idx) = self.res.find('\'') {
+            let end_idx = match self.res[start_idx + 1..].find('\'') {
+                Some(idx) => start_idx + idx + 1,
+                None => return Err(std::fmt::Error),
+            };
+            writeln!(f, "+ {} +", line)?;
+            write!(f, "| ")?;
+            write!(f, "{}", &self.res[..start_idx])?;
+            write!(f, "\x1b[32m")?;
+            write!(f, "{}", &self.res[start_idx..=end_idx])?;
+            write!(f, "\x1b[0m")?;
+            writeln!(f, "{}", &self.res[end_idx + 1..])?;
+            writeln!(f, "+ {} +", line)?;
+        } else {
+            writeln!(f, "+ {} +", line)?;
+            writeln!(f, "| {:<width$} |", self.res, width = len + 2)?;
+            writeln!(f, "+ {} +", line)?;
+        }
         Ok(())
     }
 }

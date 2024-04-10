@@ -357,11 +357,33 @@ fn main() -> Result<()> {
             }
         }
         // TODO:
-        Some(("create", sub_matches)) => println!(
-            "DEBUG:'rsm create' was used, tablename is: {:?}, and due is {:?}",
-            sub_matches.get_one::<String>("tablename").unwrap(),
-            sub_matches.get_one::<bool>("due")
-        ),
+        Some(("create", sub_matches)) => {
+            let tablename = sub_matches
+                .get_one::<String>("tablename")
+                .map(|s| s.to_owned())
+                .unwrap();
+
+            let has_due = sub_matches
+                .get_one::<bool>("due")
+                .map(|b| b.clone())
+                .unwrap();
+
+            println!(
+                "DEBUG:'rsm create' was used, tablename is: {:?}, and due is {:?}",
+                tablename, has_due
+            );
+
+            match api.create_table(tablename, has_due) {
+                Ok(res) => {
+                    log::info!("Successfully sent POST create table request and received response");
+                    res.print();
+                }
+                Err(err) => {
+                    log::error!("Error occurred while fetching tasks: {:?}", err);
+                    return Err(err);
+                }
+            }
+        }
         // TODO:
         Some(("drop", sub_matches)) => println!(
             "DEBUG:'rsm drop' was used, tablename is: {:?}",

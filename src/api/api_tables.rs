@@ -1,41 +1,42 @@
 use std::io::Read;
 
 use reqwest::{blocking, header};
-use urlencoding::encode;
+use serde_json::json;
 
-use crate::api::{ErrorResponse, SuccessfulResponse};
-use crate::error::{Error, Result};
 use crate::utils::table_formatter::FormattedResponse;
 
-use super::{Api, BACKEND};
+use crate::error::{Error, Result};
+
+use super::{Api, ErrorResponse, SuccessfulResponse, BACKEND};
 
 impl Api {
-    pub fn remove_task(
+    pub fn create_table(
         &self,
         tablename: String,
-        desc: String,
+        has_due: bool,
     ) -> Result<Box<dyn FormattedResponse>> {
         let client = blocking::Client::builder()
             .cookie_store(true)
             .build()
             .map_err(|_| Error::FailedToConnectToServer)?;
 
-        let tablename = match tablename {
-            x if ["reminder", "todo"].contains(&x.as_str()) => x.to_owned(),
-
-            name => format!("user/{}", name),
-        };
         let token: String = self.token.clone().unwrap_or_default().into();
-        let url_encoded_desc = encode(&desc);
-        let url = format!("{}/{}/{}", BACKEND, tablename, url_encoded_desc);
+        let url = format!("{}/{}", BACKEND, tablename.trim());
+        let payload = json!({
+            "due_time": has_due
+        })
+        .to_string();
 
         let mut response = client
-            .delete(url)
+            .post(url)
             .header(header::COOKIE, token)
+            .header(header::CONTENT_TYPE, "application/json")
+            .body(payload)
             .send()
             .map_err(|_| Error::FailedToConnectToServer)?;
 
         let mut body = String::new();
+
         response
             .read_to_string(&mut body)
             .map_err(|_| Error::InvalidServerResponse)?;
@@ -45,9 +46,9 @@ impl Api {
                 serde_json::from_str(&body).map_err(|_| Error::FailedtoReadServerResponse)?;
             Box::new(err_response)
         } else {
-            let task_response: SuccessfulResponse =
+            let success_response: SuccessfulResponse =
                 serde_json::from_str(&body).map_err(|_| Error::FailedtoReadServerResponse)?;
-            Box::new(task_response)
+            Box::new(success_response)
         };
 
         Ok(json_response_obj)

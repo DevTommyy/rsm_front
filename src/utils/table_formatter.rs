@@ -74,29 +74,32 @@ impl Display for SuccessfulResponse {
         let len = self.res.len();
         let line = "-".repeat(len + 2);
 
-        if let Some(start_idx) = self.res.find('\'') {
-            let end_idx = match self.res[start_idx + 1..].find('\'') {
-                Some(idx) => start_idx + idx + 1,
+        let mut start_idx = 0;
+
+        writeln!(f, "+ {} +", line)?;
+        write!(f, "| ")?;
+
+        while let Some(open_quote_idx) = self.res[start_idx..].find('\'') {
+            let adjusted_idx = start_idx + open_quote_idx;
+            let end_idx = match self.res[adjusted_idx + 1..].find('\'') {
+                Some(idx) => adjusted_idx + idx + 1,
                 None => return Err(std::fmt::Error),
             };
-            writeln!(f, "+ {} +", line)?;
-            write!(f, "| ")?;
-            write!(f, "{}", &self.res[..start_idx])?;
+
+            write!(f, "{}", &self.res[start_idx..adjusted_idx])?;
             write!(f, "\x1b[32m")?;
-            write!(f, "{}", &self.res[start_idx..=end_idx])?;
+            write!(f, "{}", &self.res[adjusted_idx..=end_idx])?;
             write!(f, "\x1b[0m")?;
-            write!(f, "{}", &self.res[end_idx + 1..])?;
-            writeln!(f, " {:<2}|", " ")?;
-            writeln!(f, "+ {} +", line)?;
-        } else {
-            writeln!(f, "+ {} +", line)?;
-            writeln!(f, "| {:<width$} |", self.res, width = len + 2)?;
-            writeln!(f, "+ {} +", line)?;
+            start_idx = end_idx + 1;
         }
+
+        write!(f, "{}", &self.res[start_idx..])?;
+        writeln!(f, "{:<3}|", " ")?;
+        writeln!(f, "+ {} +", line)?;
+
         Ok(())
     }
 }
-
 impl std::fmt::Display for GetTaskResponse {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(

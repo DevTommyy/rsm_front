@@ -23,6 +23,11 @@ impl Api {
             .build()
             .map_err(|_| Error::FailedToConnectToServer)?;
 
+        let tablename = match tablename {
+            x if ["reminder", "todo"].contains(&x.as_str()) => x.to_owned(),
+
+            name => format!("user/{}", name),
+        };
         let token: String = self.token.clone().unwrap_or_default().into();
         let url_formatted_desc = encode(&old_desc);
         let url = format!("{}/{}/{}", BACKEND, tablename, url_formatted_desc);

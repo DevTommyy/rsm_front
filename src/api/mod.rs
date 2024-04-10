@@ -4,6 +4,7 @@ pub mod api_auth;
 pub mod api_clear;
 pub mod api_list;
 pub mod api_remove;
+pub mod api_tables;
 pub mod api_update;
 
 // -- general api utils definitions

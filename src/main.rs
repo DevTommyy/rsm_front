@@ -1,10 +1,13 @@
 // https://docs.rs/clap/latest/clap/_tutorial/chapter_0/index.html
 
-use std::io;
 use std::io::Write;
 use std::{collections::HashMap, path::PathBuf};
+use std::{env, io};
 
 use clap::{command, value_parser, Arg, ArgAction, ArgGroup, Command};
+use log4rs::append::file::FileAppender;
+use log4rs::config::{Appender, Logger, Root};
+use log4rs::encode::pattern::PatternEncoder;
 use parsers::LineRange;
 use utils::config_helper::{Config, Token};
 
@@ -225,16 +228,42 @@ fn app_args() -> clap::ArgMatches {
 }
 
 fn main() -> Result<()> {
-    // init logger
-    log4rs::init_file(
-        "/home/devtommy/Codes/Rust/rsmember/cli_client/log/logger-config.yaml",
-        Default::default(),
-    )
-    .unwrap();
+    // init logger on WSL
+    #[cfg(not(target_os = "macos"))]
+    let file_appender = FileAppender::builder()
+        .encoder(Box::new(PatternEncoder::new(
+            "{d(%Y-%m-%d %H:%M:%S)(utc)} - {h({l})}: {m}{n}",
+        )))
+        .build("/home/devtommy/Codes/Rust/rsmember/cli_client/log/rsm-log.log")
+        .unwrap();
+
+    // init logger on macos
+    #[cfg(target_os = "macos")]
+    let file_appender = FileAppender::builder()
+        .encoder(Box::new(PatternEncoder::new(
+            "{d(%Y-%m-%d %H:%M:%S)(utc)} - {h({l})}: {m}{n}",
+        )))
+        .build("/Users/tommy/Codes/Rust/rsmember/cli_client/log/rsm-log.log")
+        .unwrap();
+
+    let config = log4rs::Config::builder()
+        .appender(Appender::builder().build("file_logger", Box::new(file_appender)))
+        .logger(
+            Logger::builder()
+                .appender("file_logger")
+                .build("app::backend", log::LevelFilter::Info),
+        )
+        .build(
+            Root::builder()
+                .appender("file_logger")
+                .build(log::LevelFilter::Info),
+        )
+        .unwrap();
+
+    log4rs::init_config(config).unwrap();
 
     //init config and if it is the first time running show the default prompt
     let mut config = Config::get_config()?;
-
     let args = app_args();
 
     let mut api = if !args.subcommand_matches("new-key").is_some() {

@@ -7,7 +7,11 @@ use crate::error::{Error, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
+#[cfg(not(target_os = "macos"))]
 const CONFIG_FILE: &str = "/home/devtommy/Codes/Rust/rsmember/cli_client/rsm-conf.json";
+
+#[cfg(target_os = "macos")]
+const CONFIG_FILE: &str = "/Users/tommy/Codes/Rust/rsmember/cli_client/rsm-conf.json";
 
 #[derive(Deserialize, Clone, Default)]
 pub struct Token(String);

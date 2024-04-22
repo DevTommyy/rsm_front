@@ -1,4 +1,4 @@
-// https://docs.rs/clap/latest/clap/_tutorial/chapter_0/index.html
+// TODO: rename the project and the github repo into RsMinder
 
 use std::io::Write;
 use std::{collections::HashMap, path::PathBuf};
@@ -228,6 +228,11 @@ fn app_args() -> clap::ArgMatches {
 }
 
 fn main() -> Result<()> {
+    // TODO: change the way the log file is implemented, with a command find where the project repo
+    // is, get `log` dir path and create the log file maybe all of that could be done with a sh
+    // intaller built for zsh specifically and that installer could also `cargo build --release`
+    // `sudp cp ...` so the rsm command is ready
+
     // init logger on WSL
     #[cfg(not(target_os = "macos"))]
     let file_appender = FileAppender::builder()

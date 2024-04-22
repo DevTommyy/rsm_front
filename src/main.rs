@@ -1,5 +1,3 @@
-// TODO: rename the project and the github repo into RsMinder
-
 use std::io::Write;
 use std::{collections::HashMap, path::PathBuf};
 use std::{env, io};

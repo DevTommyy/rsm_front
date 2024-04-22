@@ -23,7 +23,7 @@ echo "Finished building!"
 # Copy the built binary to /usr/local/bin
 sudo cp "./target/release/rsm" /usr/local/bin/
 
-# cargo clean -q
+cargo clean -q
 
 echo ""
 echo -e "\e[34mYou can now use the command rsm!\e[0m"

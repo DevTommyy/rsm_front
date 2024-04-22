@@ -8,6 +8,7 @@ use log4rs::config::{Appender, Logger, Root};
 use log4rs::encode::pattern::PatternEncoder;
 use parsers::LineRange;
 use utils::config_helper::{Config, Token};
+use utils::find_log_path;
 
 use crate::api::{ErrorResponse, SuccessfulResponse};
 use crate::error::Result;
@@ -226,27 +227,12 @@ fn app_args() -> clap::ArgMatches {
 }
 
 fn main() -> Result<()> {
-    // TODO: change the way the log file is implemented, with a command find where the project repo
-    // is, get `log` dir path and create the log file maybe all of that could be done with a sh
-    // intaller built for zsh specifically and that installer could also `cargo build --release`
-    // `sudp cp ...` so the rsm command is ready
-
-    // init logger on WSL
-    #[cfg(not(target_os = "macos"))]
+    let log_path = find_log_path();
     let file_appender = FileAppender::builder()
         .encoder(Box::new(PatternEncoder::new(
             "{d(%Y-%m-%d %H:%M:%S)(utc)} - {h({l})}: {m}{n}",
         )))
-        .build("/home/devtommy/Codes/Rust/rsmember/cli_client/log/rsm-log.log")
-        .unwrap();
-
-    // init logger on macos
-    #[cfg(target_os = "macos")]
-    let file_appender = FileAppender::builder()
-        .encoder(Box::new(PatternEncoder::new(
-            "{d(%Y-%m-%d %H:%M:%S)(utc)} - {h({l})}: {m}{n}",
-        )))
-        .build("/Users/tommy/Codes/Rust/rsmember/cli_client/log/rsm-log.log")
+        .build(log_path)
         .unwrap();
 
     let config = log4rs::Config::builder()

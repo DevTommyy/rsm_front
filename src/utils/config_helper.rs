@@ -1,17 +1,37 @@
 use std::{
     fs::File,
     io::{Read, Write},
+    process::Command,
 };
 
 use crate::error::{Error, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-#[cfg(not(target_os = "macos"))]
-const CONFIG_FILE: &str = "/home/devtommy/Codes/Rust/rsmember/cli_client/rsm-conf.json";
+// search for the path where to put the config
+fn find_config() -> String {
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg("find ~/ -type d -name cli_client")
+        .output()
+        .expect("Failed to execute command");
 
-#[cfg(target_os = "macos")]
-const CONFIG_FILE: &str = "/Users/tommy/Codes/Rust/rsmember/cli_client/rsm-conf.json";
+    let cli_client_dir =
+        String::from_utf8(output.stdout).expect("Invalid UTF-8 for the path of the config file");
+
+    let cli_client_dir = cli_client_dir.trim();
+
+    let mut config_path = cli_client_dir.trim().to_string();
+    config_path.push_str("/rsm-conf.json");
+
+    config_path
+}
+
+lazy_static::lazy_static! {
+    static ref CONFIG_FILE: String = {
+        find_config()
+    };
+}
 
 #[derive(Deserialize, Clone, Default)]
 pub struct Token(String);
@@ -45,7 +65,7 @@ impl Config {
 
     pub fn update_config(&self) -> Result<()> {
         write_config(
-            CONFIG_FILE,
+            &*CONFIG_FILE,
             self.key.as_deref(),
             self.first_run,
             self.token.as_deref(),
@@ -57,7 +77,7 @@ impl Config {
     }
 
     pub fn load_token() -> Result<Token> {
-        let mut file = File::open(CONFIG_FILE).map_err(|_| Error::InvalidConfig)?;
+        let mut file = File::open(&*CONFIG_FILE).map_err(|_| Error::InvalidConfig)?;
 
         let mut contents = String::new();
         file.read_to_string(&mut contents)
@@ -70,11 +90,11 @@ impl Config {
 }
 
 fn read_file() -> std::io::Result<Config> {
-    if !file_exists_or_empty(CONFIG_FILE)? {
-        write_config(CONFIG_FILE, None, true, None)?;
+    if !file_exists_or_empty(&*CONFIG_FILE)? {
+        write_config(&*CONFIG_FILE, None, true, None)?;
     }
 
-    let mut file = File::open(CONFIG_FILE)?;
+    let mut file = File::open(&*CONFIG_FILE)?;
 
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;

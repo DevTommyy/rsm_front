@@ -1283,6 +1283,7 @@ dependencies = [
  "chrono",
  "clap",
  "cookie_store 0.21.0",
+ "lazy_static",
  "log",
  "log4rs",
  "reqwest",

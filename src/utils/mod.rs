@@ -1,7 +1,7 @@
 pub mod config_helper;
 pub mod table_formatter;
 
-use std::{cmp::min, fs, io, path::PathBuf};
+use std::{cmp::min, fs, io, path::PathBuf, process::Command};
 
 use crate::parsers::LineRange;
 
@@ -71,4 +71,22 @@ pub fn resolve_file_input(
     }
 
     Ok(result)
+}
+
+pub fn find_log_path() -> String {
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg("find ~/ -type d -name cli_client")
+        .output()
+        .expect("Failed to execute command");
+
+    let cli_client_dir =
+        String::from_utf8(output.stdout).expect("Invalid UTF-8 for the path of the config file");
+
+    let cli_client_dir = cli_client_dir.trim();
+
+    let mut config_path = cli_client_dir.trim().to_string();
+    config_path.push_str("/log/rsm-log.log");
+
+    config_path
 }

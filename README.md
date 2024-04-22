@@ -1,15 +1,15 @@
 # HOW TO INSTALL
 
 ```bash
-// clone the repo
+// clone the repo in the dir you want
 git clone https://github.com/DevTommyy/cli_client.git
 
-// build the bin
-cargo build --release
+// cd into the repo
+cd cli_client
 
-// copy it into your bins (change the path to your installation)
-sudo cp ~/cli_client/target/release/rsm . //inside /usr/local/bin
+// give the installer permission to run
+chmod +x installer.sh
 
-// feel free to cargo clean after
-cargo clean
+// run the installer (you will be asked for root permission after the build)
+./installer.sh
 ```

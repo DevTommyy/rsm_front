@@ -3,6 +3,7 @@ use std::{collections::HashMap, path::PathBuf};
 use std::{env, io};
 
 use clap::{command, value_parser, Arg, ArgAction, ArgGroup, Command};
+use dotenv::dotenv;
 use log4rs::append::file::FileAppender;
 use log4rs::config::{Appender, Logger, Root};
 use log4rs::encode::pattern::PatternEncoder;
@@ -227,6 +228,8 @@ fn app_args() -> clap::ArgMatches {
 }
 
 fn main() -> Result<()> {
+    dotenv().ok();
+
     let log_path = find_log_path();
     let file_appender = FileAppender::builder()
         .encoder(Box::new(PatternEncoder::new(

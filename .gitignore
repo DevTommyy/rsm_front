@@ -15,3 +15,4 @@ Cargo.lock
 
 rsm-conf.json
 *.log
+.env

@@ -1,7 +1,7 @@
 use std::{
+    env,
     fs::File,
     io::{Read, Write},
-    process::Command,
 };
 
 use crate::error::{Error, Result};
@@ -10,21 +10,7 @@ use serde_json::json;
 
 // search for the path where to put the config
 fn find_config() -> String {
-    let output = Command::new("sh")
-        .arg("-c")
-        .arg("find ~/ -type d -name cli_client")
-        .output()
-        .expect("Failed to execute command");
-
-    let cli_client_dir =
-        String::from_utf8(output.stdout).expect("Invalid UTF-8 for the path of the config file");
-
-    let cli_client_dir = cli_client_dir.trim();
-
-    let mut config_path = cli_client_dir.trim().to_string();
-    config_path.push_str("/rsm-conf.json");
-
-    config_path
+    env::var("CONFIG").unwrap()
 }
 
 lazy_static::lazy_static! {

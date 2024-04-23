@@ -5,7 +5,9 @@
 # ----------------------------------------------------------------------------------------------------
 
 # Find the directory containing cli_client and its subdir log
-cli_client_dir=$(find ~/ -type d -name "cli_client" 2>/dev/null)
+# NOTE: change this if the installer is failing to find the dir
+# you can change where it searches by changing the dirs
+cli_client_dir=$(find ~/Codes ~/Documents ~/Downloads ~/Desktop -type d -name "cli_client" 2>/dev/null)
 log_dir="$cli_client_dir/log"
 
 # Create the log directory if it doesn't exist
@@ -17,14 +19,21 @@ touch "$log_file"
 
 # Run cargo build --release
 cd "$cli_client_dir" || exit
+
+# Create the file that contains the locations
+env_dir="$cli_client_dir/.env"
+touch "$env_dir"
+echo "CONFIG=\"$cli_client_dir/rsm-conf.json\"" >"$env_dir"
+echo "LOG=\"$log_file\"" >>"$env_dir"
+
 echo "Building the binary for rsm..." && cargo build -q --release
 echo "Finished building!"
 
 # Copy the built binary to /usr/local/bin
 sudo cp "./target/release/rsm" /usr/local/bin/
 
-cargo clean -q
+# cargo clean -q
 
 echo ""
-echo -e "\e[34mYou can now use the command rsm!\e[0m"
-echo -e "\e[34mTry running rsm --help\e[0m"
+echo "$(tput setaf 4)You can now use the command rsm!$(tput sgr0)"
+echo "$(tput setaf 4)Try running rsm --help$(tput sgr0)"

@@ -32,7 +32,7 @@ echo "Finished building!"
 # Copy the built binary to /usr/local/bin
 sudo cp "./target/release/rsm" /usr/local/bin/
 
-# cargo clean -q
+cargo clean -q
 
 echo ""
 echo "$(tput setaf 4)You can now use the command rsm!$(tput sgr0)"

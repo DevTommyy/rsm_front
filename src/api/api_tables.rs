@@ -1,3 +1,11 @@
+/// # Api Module: Table Operations
+///
+/// This module provides functionality for creating and removing tables.
+///
+/// ## Methods
+///
+/// - `create_table`: Method to create a new table with optional due time.
+/// - `remove_table`: Method to remove an existing table.
 use std::io::Read;
 
 use reqwest::{blocking, header};

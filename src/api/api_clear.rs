@@ -1,3 +1,14 @@
+/// # Api Module: Table Operations
+///
+/// This module provides functionality for table operations such as clearing a table.
+///
+/// ## Struct
+///
+/// - `Api`: Implementation of the API structure.
+///
+/// ## Methods
+///
+/// - `clear_table`: Method to clear a table.
 use std::io::Read;
 
 use reqwest::{blocking, header};

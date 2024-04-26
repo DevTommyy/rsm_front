@@ -1,3 +1,17 @@
+/// # Api Module: Task Operations
+///
+/// This module provides functionality for task operations such as fetching tasks and table characteristics.
+///
+/// ## Structs
+///
+/// - `TableCharacteristicsResponse`: Represents the response containing table characteristics.
+/// - `TableCharacteristicsResponseDetails`: Details of table characteristics.
+/// - `GetTaskResponse`: Represents the response containing tasks.
+/// - `GetTaskResponseDetail`: Details of a task.
+///
+/// ## Methods
+///
+/// - `get_tasks`: Method to fetch tasks and table characteristics.
 use chrono::NaiveDateTime;
 use reqwest::{blocking, header};
 use serde::{Deserialize, Serialize};

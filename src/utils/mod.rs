@@ -1,3 +1,35 @@
+/// # Utils Module
+///
+/// This module contains utility functions used throughout the application.
+///
+/// ## Submodules
+///
+/// - `config_helper`: Provides functionality for working with configuration files.
+/// - `table_formatter`: Provides functionality for formatting table data.
+///
+/// ## Functions
+///
+/// - `get_user_choice`: Prompts the user to enter a choice ('yes' or 'no').
+/// - `resolve_file_input`: Resolves input from a file, optionally extracting a single line or a range of lines.
+/// - `find_log_path`: Finds the path to the log file.
+///
+/// ## Types
+///
+/// - `Choice`: An enumeration representing a user choice ('Yes' or 'No').
+///
+/// ## Examples
+///
+/// ```rust
+/// use std::path::PathBuf;
+/// use custom_utils::{Choice, get_user_choice, resolve_file_input, find_log_path};
+///
+/// let choice = get_user_choice().expect("Failed to get user choice");
+///
+/// let file_path = PathBuf::from("example.txt");
+/// let content = resolve_file_input(&file_path, Some(&1), None).expect("Failed to resolve file input");
+///
+/// let log_path = find_log_path();
+/// ```
 pub mod config_helper;
 pub mod table_formatter;
 

@@ -1,3 +1,10 @@
+/// # Api Module: Task Removal
+///
+/// This module provides functionality for removing tasks.
+///
+/// ## Methods
+///
+/// - `remove_task`: Method to remove a task from a specified table.
 use std::io::Read;
 
 use reqwest::{blocking, header};

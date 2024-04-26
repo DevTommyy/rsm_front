@@ -1,4 +1,7 @@
-// format the table to be shown in a pretty manner
+/// # Config Helper Module
+///
+/// This module implements formatting for mutliple types to make
+/// the CLI output be pretty formatted.
 use crate::api::api_list::{GetTaskResponse, TableCharacteristicsResponse};
 use crate::api::{ErrorResponse, SuccessfulResponse};
 use std::fmt::Display;

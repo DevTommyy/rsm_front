@@ -1,3 +1,17 @@
+/// # Api Module: User Operations
+///
+/// This module provides functionality for user operations such as signup, login, logout, and recovering lost keys.
+///
+/// ## Struct
+///
+/// - `Api`: Implementation of the API structure.
+///
+/// ## Methods
+///
+/// - `post_signup`: Method to sign up a new user.
+/// - `post_login`: Method to log in a user.
+/// - `post_logout`: Method to log out a user.
+/// - `post_lostkey`: Method to recover a lost key for a user.
 use std::io::Read;
 
 use chrono::{DateTime, Utc};

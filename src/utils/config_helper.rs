@@ -1,3 +1,37 @@
+/// # Config Helper Module
+///
+/// This module provides functionality for working with rsm config file.
+///
+/// ## Functions
+///
+/// - `get_config`: Reads the configuration file and returns a `Config` struct.
+/// - `update_config`: Updates the configuration file with new values.
+/// - `load_token`: Loads the token from the configuration file.
+///
+/// ## Types
+///
+/// - `Token`: Represents an API token.
+/// - `Config`: Represents the application configuration.
+///
+/// ## Examples
+///
+/// ```rust
+/// use custom_utils::{Config, Token};
+///
+/// // Get the configuration
+/// let config = Config::get_config().expect("Failed to get config");
+///
+/// // Update the configuration
+/// let updated_config = Config {
+///     key: Some("new_key".to_string()),
+///     first_run: false,
+///     token: Some("new_token".to_string()),
+/// };
+/// updated_config.update_config().expect("Failed to update config");
+///
+/// // Load the token from the configuration
+/// let token = Config::load_token().expect("Failed to load token");
+/// ```
 use std::{
     env,
     fs::File,

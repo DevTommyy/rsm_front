@@ -1,3 +1,108 @@
+/// # rsminder
+///
+/// `rsminder` is a command-line interface (CLI) application that
+/// allows users to manage todos, reminders, and create
+/// custom tables to store useful information.
+///
+/// ## Usage
+///
+/// The CLI app provides various subcommands to perform different operations. Here are the available
+/// subcommands:
+///
+/// - `new-key`: Resets the account key.
+/// - `logout`: Logs out from the account.
+/// - `list`: Lists tables with specifications or table contents. It supports options like filtering
+///   by table name, specifying a group, and sorting the output.
+/// - `create`: Creates a new table.
+/// - `drop`: Deletes a table.
+/// - `add`: Adds a task into a table. It supports adding tasks from text input or file input with
+///   options like specifying due date, group, etc.
+/// - `remove`: Removes a task from a table.
+/// - `update`: Updates a task from a table. It supports updating task description, due date, group,
+///   etc.
+/// - `clear`: Clears completely a table.
+///
+/// ## Subcommands and Arguments
+///
+/// Each subcommand has its own set of arguments and options. Below are the details of each subcommand
+/// and their corresponding arguments:
+///
+/// - `new-key`: No arguments.
+///
+/// - `logout`: No arguments.
+///
+/// - `list`:
+///     - `tablename`: Name of the table to show (optional).
+///     - `group`: Specify the group to show (requires `tablename`).
+///     - `sort-by`: The key to sort the output by (requires `tablename`).
+///
+/// - `create`:
+///     - `tablename`: Name of the table to create (required).
+///     - `due`: Set if the table has a due time, defaults to false.
+///
+/// - `drop`:
+///     - `tablename`: Name of the table to remove (required).
+///
+/// - `add`:
+///     - `tablename`: Name of the table where to add the task (required).
+///     - `task`: The task to add as text (conflicts with `file`).
+///     - `file`: File from where to find the description of the task to add (conflicts with `task`).
+///     - `line`: Add task from a specific line (requires `file`).
+///     - `range`: Add task from a range (requires `file`).
+///     - `due`: The due of the task in one of the formats: 'hh:mm' or 'YYYY-MM-dd hh:mm'.
+///     - `group`: The group of the task.
+///
+/// - `remove`:
+///     - `tablename`: Name of the table where to remove the task (required).
+///     - `desc`: The description of the task to remove (required).
+///
+/// - `update`:
+///     - `tablename`: Name of the table where to update the task (required).
+///     - `desc`: The description of the task to update (required).
+///     - `task`: The new description of the task as text (conflicts with `file`).
+///     - `file`: The new description of the task from a file (conflicts with `task`).
+///     - `line`: Add task from a specific line (requires `file`).
+///     - `range`: Add task from a range (requires `file`).
+///     - `due`: The due of the task in one of the formats: 'hh:mm' or 'YYYY-MM-dd hh:mm'.
+///     - `group`: The group of the task.
+///
+/// - `clear`:
+///     - `tablename`: Name of the table where to clear (required).
+///
+/// ## Main Function
+///
+/// The `main` function initializes the CLI app, sets up logging, parses command-line arguments,
+/// handles subcommands, interacts with the API, and performs corresponding actions based on user input.
+///
+/// ## Modules
+///
+/// The `main.rs` file includes several modules:
+///
+/// - `api`: Contains API-related functionalities.
+/// - `error`: Defines custom error types and handling.
+/// - `parsers`: Provides parsers for parsing input data.
+/// - `utils`: Includes utility functions for configuration management, user interaction, etc.
+///
+/// ## Dependencies
+///
+/// The CLI app uses several external crates:
+///
+/// - `clap`: For parsing command-line arguments.
+/// - `dotenv`: For loading environment variables from a .env file.
+/// - `log4rs`: For logging configuration and management.
+///
+/// ## Additional Notes
+///
+/// - The CLI app interacts with an API for user authentication and data management.
+/// - It handles user authentication (login/signup) and supports basic CRUD operations on tables
+///   and tasks.
+/// - Error handling is implemented to provide informative error messages to the user.
+/// - Configuration management is handled through a `Config` struct.
+/// - The app provides a user-friendly interface with prompts for user input.
+/// - Logging is configured to log events and errors for debugging and monitoring purposes.
+///
+/// For further details on specific functions and implementations, refer to the comments and code
+/// in the `main.rs` file.
 use std::io::Write;
 use std::{collections::HashMap, path::PathBuf};
 use std::{env, io};
@@ -22,6 +127,7 @@ pub mod error;
 pub mod parsers;
 pub mod utils;
 
+/// Return the clalp arg matcher for the cli input
 fn app_args() -> clap::ArgMatches {
     command!()
         .subcommand_required(true)
@@ -227,6 +333,7 @@ fn app_args() -> clap::ArgMatches {
         .get_matches()
 }
 
+/// Handles all the matching of the cli areguments
 fn main() -> Result<()> {
     dotenv().ok();
 
@@ -558,6 +665,11 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+/// If it is the first time running the app for the user this function handles his login or signup
+///
+/// # Args
+/// - api: struct `Api` that represents the interface to the api
+/// - config: struct `Config` that represents the config management
 fn show_first_run_prompt(api: &Api, config: &mut Config) -> Result<()> {
     println!("\x1b[34mWelcome to RsMember!\x1b[0m\n");
 
@@ -601,6 +713,7 @@ fn show_first_run_prompt(api: &Api, config: &mut Config) -> Result<()> {
     }
 }
 
+/// Wrapper struct that represents an api key
 struct Key(String);
 
 impl From<String> for Key {
@@ -609,6 +722,10 @@ impl From<String> for Key {
     }
 }
 
+/// Handles the login logic
+///
+/// # Args
+/// - api: struct `Api` that represents the interface to the api
 fn login(api: &Api) -> Result<(Key, Token)> {
     println!("Please input your key");
 
@@ -637,6 +754,10 @@ fn login(api: &Api) -> Result<(Key, Token)> {
     Ok((key.into(), res.1.into()))
 }
 
+/// Handles the signup logic
+///
+/// # Args
+/// - api: struct `Api` that represents the interface to the api
 fn signup(api: &Api) -> Result<()> {
     println!("Create Account:");
     print!("username: ");

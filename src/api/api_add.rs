@@ -1,3 +1,27 @@
+/// # Api Module: Add Task Operation
+///
+/// This module provides functionality for adding tasks to the specified table.
+///
+/// ## Struct
+///
+/// - `Api`: Implementation of the API structure.
+///
+/// ## Methods
+///
+/// - `add_task`: Method to add a task to the specified table.
+///
+///   ### Parameters
+///
+///   - `tablename`: Name of the table where the task will be added.
+///   - `body`: HashMap containing key-value pairs representing the task details.
+///
+///   ### Returns
+///
+///   Returns a `Result<Box<dyn FormattedResponse>>`:
+///
+///   - On success, returns a boxed trait object implementing `FormattedResponse`, which can be
+///     either `SuccessfulResponse` or `ErrorResponse`.
+///   - On failure, returns an `Error`.
 use std::collections::HashMap;
 use std::io::Read;
 

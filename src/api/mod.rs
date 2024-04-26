@@ -1,4 +1,40 @@
-// modules_definition
+/// # API Modules Definition
+///
+/// This module defines various submodules related to API operations:
+///
+/// - `api_add`: Module for adding tasks.
+/// - `api_auth`: Module for authentication.
+/// - `api_clear`: Module for clearing tables.
+/// - `api_list`: Module for listing tables and tasks.
+/// - `api_remove`: Module for removing tasks.
+/// - `api_tables`: Module for managing tables.
+/// - `api_update`: Module for updating tasks.
+///
+/// ## General API Utilities
+///
+/// This section defines general utilities and structures used across API modules:
+///
+/// - `Api`: Struct for interacting with the API. It handles token management and provides methods
+///   for API operations.
+///
+/// - `ErrorResponse`: Struct representing an error response from the API. It contains details
+///   about the error, including a unique request UUID and error type.
+///
+/// - `ErrorDetail`: Struct representing details of an error, including the request UUID and error
+///   type.
+///
+/// - `SuccessfulResponse`: Struct representing a successful response from the API. It contains
+///   the response message.
+///
+/// - `ErrorType`: Enum representing different types of errors returned by the API. It provides
+///   human-readable error messages corresponding to each error type.
+///
+/// ## Constants
+///
+/// - `BACKEND`: Base URL of the API backend.
+///
+/// For detailed information on each submodule, structure, and method, refer to their respective
+/// source files.
 pub mod api_add;
 pub mod api_auth;
 pub mod api_clear;

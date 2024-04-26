@@ -1,3 +1,23 @@
+/// # Parsers Module
+///
+/// This module contains custom parsers for specific data types used in the application.
+/// _Those parsers are build for clap_
+///
+/// ## Custom Parsers
+///
+/// - `LineRange`: Parses a string representing a range of lines.
+/// - `Due`: Parses a string representing a due date and time.
+///
+/// ## Custom Parsers
+///
+/// ### LineRange
+///
+/// Parses a string representing a range of lines in the format `<start>..<end>`.
+///
+/// ### Due
+///
+/// Parses a string representing a due date and time. The format can be either just the time (`HH:MM`) or date and time (`YYYY-MM-DD HH:MM`).
+
 use std::ops::RangeInclusive;
 
 use chrono::{Duration, Local, NaiveTime};

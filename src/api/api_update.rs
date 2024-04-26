@@ -1,3 +1,10 @@
+/// # Api Module: Task Update Operation
+///
+/// This module provides functionality for updating tasks.
+///
+/// ## Method
+///
+/// - `update_task`: Method to update an existing task in a table.
 use std::collections::HashMap;
 use std::io::Read;
 

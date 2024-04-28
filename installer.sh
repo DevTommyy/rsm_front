@@ -23,6 +23,12 @@ cd "$cli_client_dir" || exit
 # Create the file that contains the locations
 env_dir="$cli_client_dir/.env"
 touch "$env_dir"
+
+# Store the env path for the bin
+env_path="$cli_client_dir/src/env_path.txt"
+touch "$env_path"
+echo "$env_dir" >"$env_path"
+
 echo "CONFIG=\"$cli_client_dir/rsm-conf.json\"" >"$env_dir"
 echo "LOG=\"$log_file\"" >>"$env_dir"
 

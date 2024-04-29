@@ -68,8 +68,8 @@ pub fn get_user_choice() -> io::Result<Choice> {
 
 pub fn resolve_file_input(
     file: &PathBuf,
-    line: Option<&u16>,        // Changed type to usize for line number
-    range: Option<&LineRange>, // Changed type to tuple of (start, end) line numbers
+    line: Option<&u16>,
+    range: Option<&LineRange>,
 ) -> io::Result<String> {
     if !file.exists() {
         return Err(io::Error::new(io::ErrorKind::NotFound, "File not found"));

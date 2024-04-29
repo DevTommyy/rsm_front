@@ -1,1 +1,1 @@
-/home/devtommy/Codes/Rust/rsmember/cli_client/.env
+/Users/tommy/Codes/Rust/rsmember/cli_client/.env

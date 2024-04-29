@@ -16,3 +16,4 @@ Cargo.lock
 rsm-conf.json
 *.log
 .env
+src/env_path.txt

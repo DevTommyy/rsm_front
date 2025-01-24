@@ -1,0 +1,181 @@
+use api::Api;
+use clap::{error::Result, Args, Parser, Subcommand};
+
+mod api;
+mod formatter;
+mod utils;
+
+#[derive(Parser, Debug)]
+#[command(
+    name = "rsmember",
+    about = "Basically a \"todo\" app for the cli",
+    subcommand_required = true,
+    arg_required_else_help = true
+)]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand, Debug)]
+enum Commands {
+    /// Login into your account
+    Login,
+    /// Create a new account
+    Signup,
+    /// Logout from the account
+    Logout,
+    /// Creates a new table
+    Create(CreateArgs),
+    /// Deletes a table
+    Drop(DropArgs),
+    /// List table contents or tables with their specs
+    List(ListArgs),
+    /// Adds a task into a table
+    Add(AddArgs),
+    /// Removes a task from a table
+    Remove(RemoveArgs),
+    /// Updates a task from a table
+    Update(UpdateArgs),
+    /// Clears completely a table
+    Clear(ClearArgs),
+}
+
+// create table
+#[derive(Args, Debug)]
+struct LoginArgs {
+    #[arg(long = "username", short = 'u')]
+    username: String,
+    #[arg(long = "password", short = 'u')]
+    pwd: String,
+}
+
+// create table
+#[derive(Args, Debug)]
+struct CreateArgs {
+    tablename: String,
+    #[arg(long = "due", short = 'd', requires = "tablename", action = clap::ArgAction::SetTrue)]
+    due: bool,
+    #[arg(long = "group", short = 'g', requires = "tablename", action = clap::ArgAction::SetTrue)]
+    group: bool,
+}
+
+// drop table
+#[derive(Args, Debug)]
+struct DropArgs {
+    tablename: String,
+}
+
+// list table items or all tables with specs if no tablename provided
+#[derive(Args, Debug)]
+struct ListArgs {
+    tablename: Option<String>,
+    #[arg(short = 'g', long = "group", requires = "tablename")]
+    group: Option<String>,
+    // can be either due or id, checked in the backend
+    #[arg(short = 's', long = "sort-by", requires = "tablename")]
+    sort_by: Option<String>,
+}
+
+// add a task to a table
+#[derive(Args, Debug)]
+struct AddArgs {
+    tablename: String,
+    #[arg(short = 't', long = "task")]
+    task: Option<String>,
+    #[arg(short = 'd', long = "due")]
+    due: Option<String>,
+    #[arg(short = 'g', long = "group")]
+    group: Option<String>,
+}
+
+// remove a task from a table
+#[derive(Args, Debug)]
+struct RemoveArgs {
+    tablename: String,
+    id: String,
+}
+
+// update a task of a table
+#[derive(Args, Debug)]
+struct UpdateArgs {
+    tablename: String,
+    id: String,
+    #[arg(short = 't', long = "task")]
+    task: Option<String>,
+    #[arg(short = 'd', long = "due")]
+    due: Option<String>,
+    #[arg(short = 'g', long = "group")]
+    group: Option<String>,
+}
+
+// clean a table
+#[derive(Args, Debug)]
+struct ClearArgs {
+    tablename: String,
+}
+
+fn main() -> Result<(), String> {
+    let cli = Cli::parse();
+    let api = Api::from_token_file();
+
+    api.has_connection()?
+        .then_some(())
+        .ok_or_else(|| "No internet connection found, check your Wi-Fi connection".to_string())?;
+
+    // if login or signup match beforehand
+    match cli.command {
+        Commands::Login => {
+            let (usr, pwd) =
+                utils::prompt_credentials().map_err(|e| format!("Internal error: {e}"))?;
+            // TODO: implement
+
+            return Ok(());
+        }
+        Commands::Signup => {
+            let (usr, pwd) =
+                utils::prompt_credentials().map_err(|e| format!("Internal error: {e}"))?;
+
+            let res = api.register_user(usr, pwd)?;
+            // res is there, it wont only if there'll be breaking changes on the api
+            println!("{}", res.get("res").and_then(|v| v.as_str()).unwrap());
+            println!("Now you can login");
+
+            return Ok(());
+        }
+        _ => {}
+    }
+
+    // TODO: dont know if needed
+    // Ensure the user has a valid token before proceeding with other commands
+    if !api.has_token() {
+        return Err(
+            "No token found, you must login or sign up and put your token in the '.token' file"
+                .to_string(),
+        );
+    }
+
+    // Now process remaining commands
+    match cli.command {
+        Commands::Logout => todo!(),
+        Commands::Create(create_args) => todo!(),
+        Commands::Drop(drop_args) => todo!(),
+        Commands::List(list_args) => {
+            if let Some(tablename) = list_args.tablename {
+                let res = api.list_table_contents(
+                    &tablename,
+                    list_args.group.as_deref(),
+                    list_args.sort_by.as_deref(),
+                )?;
+            } else {
+                todo!()
+            };
+            Ok(())
+        }
+        Commands::Add(add_args) => todo!(),
+        Commands::Remove(remove_args) => todo!(),
+        Commands::Update(update_args) => todo!(),
+        Commands::Clear(clear_args) => todo!(),
+        _ => unreachable!(), // This handles exhaustive checking without runtime cost
+    }
+}

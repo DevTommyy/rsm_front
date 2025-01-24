@@ -1,0 +1,13 @@
+[package]
+name = "rsm_front"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.5.27", features = ["derive"] }
+ureq = { version = "2.12.1", features = ["json"] }
+
+serde = { version = "1.0.217", features = ["derive"] }
+serde_json = { version = "1.0.137" }
+
+chrono-tz = { version = "0.10.1", features = ["serde"] }

@@ -128,7 +128,15 @@ fn main() -> Result<(), String> {
         Commands::Login => {
             let (usr, pwd) =
                 utils::prompt_credentials().map_err(|e| format!("Internal error: {e}"))?;
-            // TODO: implement
+
+            let res = api.login(usr, pwd)?;
+            // res is there, it wont only if there'll be breaking changes on the api
+            println!();
+            println!(
+                "Your token is: '{}', put it in your '.token' file",
+                res.get("res").and_then(|v| v.as_str()).unwrap()
+            );
+            println!("successfully logged in");
 
             return Ok(());
         }
@@ -137,7 +145,7 @@ fn main() -> Result<(), String> {
                 utils::prompt_credentials().map_err(|e| format!("Internal error: {e}"))?;
 
             let res = api.register_user(usr, pwd)?;
-            // res is there, it wont only if there'll be breaking changes on the api
+            println!();
             println!("{}", res.get("res").and_then(|v| v.as_str()).unwrap());
             println!("Now you can login");
 
@@ -146,7 +154,6 @@ fn main() -> Result<(), String> {
         _ => {}
     }
 
-    // TODO: dont know if needed
     // Ensure the user has a valid token before proceeding with other commands
     if !api.has_token() {
         return Err(
@@ -167,6 +174,8 @@ fn main() -> Result<(), String> {
                     list_args.group.as_deref(),
                     list_args.sort_by.as_deref(),
                 )?;
+                println!("{res}");
+                todo!()
             } else {
                 todo!()
             };

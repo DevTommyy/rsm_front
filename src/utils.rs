@@ -3,6 +3,7 @@ use std::{
     io::{self, Write},
 };
 
+// i dont care about the pass being shown on the terminal since only i am using this
 pub fn prompt_credentials() -> io::Result<(String, String)> {
     print!("Enter username: ");
     io::stdout().flush()?;

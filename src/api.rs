@@ -16,12 +16,37 @@ impl Api {
         let token: Option<Token> = std::fs::read_to_string(".token")
             .ok()
             .filter(|s| !s.trim().is_empty())
-            .map(|s| Token(s.trim().to_string()));
+            .map(|s| {
+                let token = s.split_whitespace().last().unwrap().trim().to_string();
+                Token(token)
+            });
 
         Api { token }
     }
 
-    // i dont care about the pass being shown on the terminal since only i am using this
+    fn handle_response(
+        response: Result<ureq::Response, ureq::Error>,
+    ) -> Result<serde_json::Value, String> {
+        match response {
+            Ok(res) => res
+                .into_json()
+                .map_err(|_| "Internal Error: Failed to parse the API response".to_string()),
+            Err(ureq::Error::Status(_, res)) => match res.into_json::<serde_json::Value>() {
+                Ok(json) => {
+                    if let Some(error_type) = json["error"]["type"].as_str() {
+                        Err(error_type.to_string())
+                    } else {
+                        Err("Unknown error format".to_string())
+                    }
+                }
+                _ => unreachable!(
+                    "if this prints then what i thought was wrong and there is some other err"
+                ),
+            },
+            Err(_) => Err("Request failed unexpectedly".to_string()),
+        }
+    }
+
     pub fn register_user(&self, usr: String, pwd: String) -> Result<serde_json::Value, String> {
         let url = format!("{API_BASE_PATH}signup");
 
@@ -36,14 +61,22 @@ impl Api {
         let tz: chrono_tz::Tz = utils::get_sys_tz().unwrap_or_default();
         let json_body = json!({"username": usr, "password": pwd, "timezone": tz});
 
-        match request.send_json(json_body) {
-            Ok(res) => match res.into_json() {
-                Ok(json) => Ok(json),
-                Err(_) => Err("Internal Error: Failed to parse the API response".to_string()),
-            },
-            Err(ureq::Error::Status(_, res)) => Err(res.status_text().to_string()),
-            _ => unreachable!(),
-        }
+        Self::handle_response(request.send_json(json_body))
+    }
+
+    pub fn login(&self, usr: String, pwd: String) -> Result<serde_json::Value, String> {
+        let url = format!("{API_BASE_PATH}login");
+
+        let request = ureq::post(&url);
+        let request = if let Some(token) = &self.token {
+            request.set("Authorization", &format!("Bearer {}", token.0))
+        } else {
+            request
+        };
+
+        let json_body = json!({"username": usr, "password": pwd});
+
+        Self::handle_response(request.send_json(json_body))
     }
 
     pub fn list_table_contents(
@@ -73,14 +106,7 @@ impl Api {
             request
         };
 
-        match request.call() {
-            Ok(res) => match res.into_json() {
-                Ok(json) => Ok(json),
-                Err(_) => Err("Internal Error: Failed to parse the API response".to_string()),
-            },
-            Err(ureq::Error::Status(_, res)) => Err(res.status_text().to_string()),
-            _ => unreachable!(),
-        }
+        Self::handle_response(request.call())
     }
 
     pub fn has_token(&self) -> bool {

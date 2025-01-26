@@ -84,7 +84,7 @@ struct AddArgs {
     tablename: String,
     #[arg(short = 't', long = "task", requires = "tablename")]
     task: String,
-    #[arg(short = 'd', long = "due", requires = "tablename", value_parser = parse_due)]
+    #[arg(short = 'd', long = "due", requires = "tablename", value_parser = parse_due, help = "due in the format of 'hh:mm' or 'YYYY-MM-dd hh:mm'")]
     due: Option<Due>,
     #[arg(short = 'g', long = "group", requires = "tablename")]
     group: Option<String>,
@@ -106,7 +106,7 @@ struct UpdateArgs {
     id: String,
     #[arg(short = 't', long = "task", requires = "id")]
     task: String,
-    #[arg(short = 'd', long = "due", requires = "tablename", value_parser = parse_due)]
+    #[arg(short = 'd', long = "due", requires = "tablename", value_parser = parse_due, help = "due in the format of 'hh:mm' or 'YYYY-MM-dd hh:mm'")]
     due: Option<Due>,
     #[arg(short = 'g', long = "group", requires = "id")]
     group: Option<String>,

@@ -81,11 +81,11 @@ struct ListArgs {
 #[derive(Args, Debug)]
 struct AddArgs {
     tablename: String,
-    #[arg(short = 't', long = "task")]
-    task: Option<String>,
-    #[arg(short = 'd', long = "due")]
+    #[arg(short = 't', long = "task", requires = "tablename")]
+    task: String,
+    #[arg(short = 'd', long = "due", requires = "tablename")]
     due: Option<String>,
-    #[arg(short = 'g', long = "group")]
+    #[arg(short = 'g', long = "group", requires = "tablename")]
     group: Option<String>,
 }
 
@@ -93,6 +93,7 @@ struct AddArgs {
 #[derive(Args, Debug)]
 struct RemoveArgs {
     tablename: String,
+    #[arg(requires = "tablename")]
     id: String,
 }
 
@@ -100,12 +101,13 @@ struct RemoveArgs {
 #[derive(Args, Debug)]
 struct UpdateArgs {
     tablename: String,
+    #[arg(requires = "tablename")]
     id: String,
-    #[arg(short = 't', long = "task")]
+    #[arg(short = 't', long = "task", requires = "id")]
     task: Option<String>,
-    #[arg(short = 'd', long = "due")]
+    #[arg(short = 'd', long = "due", requires = "id")]
     due: Option<String>,
-    #[arg(short = 'g', long = "group")]
+    #[arg(short = 'g', long = "group", requires = "id")]
     group: Option<String>,
 }
 

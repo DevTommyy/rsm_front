@@ -54,3 +54,63 @@ pub fn get_sys_tz() -> Option<chrono_tz::Tz> {
 
     None
 }
+
+/// Due parsing logic
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct Due(pub chrono::NaiveDateTime); // due is parsed either as 'hh:mm' of the same day or tomorrow or 'YYYY-MM-dd hh:mm'.
+
+#[derive(Debug)]
+pub enum DueParseError {
+    InvalidFormat,
+}
+
+impl std::fmt::Display for DueParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DueParseError::InvalidFormat => write!(
+                f,
+                "Invalid due date format. Expected 'hh:mm' or 'YYYY-MM-dd hh:mm'."
+            ),
+        }
+    }
+}
+
+impl TryFrom<&str> for Due {
+    type Error = DueParseError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        use chrono::{Duration, Local, NaiveDateTime, NaiveTime};
+
+        // Try parsing as 'YYYY-MM-dd hh:mm'
+        if let Ok(parsed) = NaiveDateTime::parse_from_str(value, "%Y-%m-%d %H:%M") {
+            return Ok(Due(parsed));
+        }
+
+        // Try parsing as 'hh:mm' (today or tomorrow)
+        if let Ok(time) = NaiveTime::parse_from_str(value, "%H:%M") {
+            let now = Local::now().naive_local();
+
+            let today = now.date();
+            let today_datetime = NaiveDateTime::new(today, time);
+
+            // Check if the time is already in the past today
+            if today_datetime < now {
+                // If it's already passed today, set it for tomorrow
+                let tomorrow = today + Duration::days(1);
+                let tomorrow_datetime = NaiveDateTime::new(tomorrow, time);
+                return Ok(Due(tomorrow_datetime));
+            } else {
+                // Otherwise, set it for today
+                return Ok(Due(today_datetime));
+            }
+        }
+
+        // If none of the formats matched, return an error
+        Err(DueParseError::InvalidFormat)
+    }
+}
+
+// Custom parser for the `due` field.
+pub fn parse_due(value: &str) -> Result<Due, String> {
+    Due::try_from(value).map_err(|e| e.to_string())
+}

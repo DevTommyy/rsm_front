@@ -1,5 +1,6 @@
 use api::Api;
 use clap::{error::Result, Args, Parser, Subcommand};
+use utils::{parse_due, Due};
 
 mod api;
 mod formatter;
@@ -83,8 +84,8 @@ struct AddArgs {
     tablename: String,
     #[arg(short = 't', long = "task", requires = "tablename")]
     task: String,
-    #[arg(short = 'd', long = "due", requires = "tablename")]
-    due: Option<String>,
+    #[arg(short = 'd', long = "due", requires = "tablename", value_parser = parse_due)]
+    due: Option<Due>,
     #[arg(short = 'g', long = "group", requires = "tablename")]
     group: Option<String>,
 }
@@ -199,7 +200,16 @@ fn main() -> Result<(), String> {
             };
             Ok(())
         }
-        Commands::Add(add_args) => todo!(),
+        Commands::Add(AddArgs {
+            tablename,
+            task,
+            due,
+            group,
+        }) => {
+            let res = api.add_task_to_table(&tablename, &task, due, group.as_deref())?;
+            println!("{res}");
+            unimplemented!("format the res")
+        }
         Commands::Remove(remove_args) => todo!(),
         Commands::Update(update_args) => todo!(),
         Commands::Clear(clear_args) => todo!(),

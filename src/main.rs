@@ -1,6 +1,6 @@
 use api::Api;
 use clap::{error::Result, Args, Parser, Subcommand};
-use utils::{parse_due, Due};
+use utils::{parse_due, prompt_logout, Due};
 
 mod api;
 mod formatter;
@@ -105,9 +105,9 @@ struct UpdateArgs {
     #[arg(requires = "tablename")]
     id: String,
     #[arg(short = 't', long = "task", requires = "id")]
-    task: Option<String>,
-    #[arg(short = 'd', long = "due", requires = "id")]
-    due: Option<String>,
+    task: String,
+    #[arg(short = 'd', long = "due", requires = "tablename", value_parser = parse_due)]
+    due: Option<Due>,
     #[arg(short = 'g', long = "group", requires = "id")]
     group: Option<String>,
 }
@@ -167,7 +167,19 @@ fn main() -> Result<(), String> {
 
     // Now process remaining commands
     match cli.command {
-        Commands::Logout => todo!(),
+        Commands::Logout => {
+            let logout = prompt_logout().map_err(|e| format!("Internal error: {e}"))?;
+            let res = api.logout(logout)?;
+
+            //clear the .token file, no need to change the state of the api cause the program will
+            //end right after this
+            if let Err(e) = std::fs::File::create(".token") {
+                panic!("couldnt clear token file: {e}")
+            }
+
+            println!("{res}");
+            unimplemented!("format the res")
+        }
         Commands::Create(CreateArgs {
             tablename,
             due,
@@ -198,7 +210,6 @@ fn main() -> Result<(), String> {
                 println!("{res}");
                 unimplemented!("format the res")
             };
-            Ok(())
         }
         Commands::Add(AddArgs {
             tablename,
@@ -206,13 +217,31 @@ fn main() -> Result<(), String> {
             due,
             group,
         }) => {
-            let res = api.add_task_to_table(&tablename, &task, due, group.as_deref())?;
+            let res = api.add_task(&tablename, &task, due, group.as_deref())?;
             println!("{res}");
             unimplemented!("format the res")
         }
-        Commands::Remove(remove_args) => todo!(),
-        Commands::Update(update_args) => todo!(),
-        Commands::Clear(clear_args) => todo!(),
+        Commands::Remove(RemoveArgs { tablename, id }) => {
+            let res = api.remove_task(&tablename, &id)?;
+            println!("{res}");
+            unimplemented!("format the res")
+        }
+        Commands::Update(UpdateArgs {
+            tablename,
+            id,
+            task,
+            due,
+            group,
+        }) => {
+            let res = api.update_task(&tablename, &id, &task, due, group.as_deref())?;
+            println!("{res}");
+            unimplemented!("format the res")
+        }
+        Commands::Clear(ClearArgs { tablename }) => {
+            let res = api.clear_table(&tablename)?;
+            println!("{res}");
+            unimplemented!("format the res")
+        }
         _ => unreachable!(), // This handles exhaustive checking without runtime cost
     }
 }

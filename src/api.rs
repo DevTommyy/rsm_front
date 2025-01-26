@@ -89,11 +89,6 @@ impl Api {
         let url = format!("{API_BASE_PATH}signup");
 
         let request = ureq::post(&url);
-        let request = if let Some(token) = &self.token {
-            request.set("Authorization", &format!("Bearer {}", token.0))
-        } else {
-            request
-        };
 
         // defaults to UTC
         let tz: chrono_tz::Tz = utils::get_sys_tz().unwrap_or_default();
@@ -106,17 +101,25 @@ impl Api {
         let url = format!("{API_BASE_PATH}login");
 
         let request = ureq::post(&url);
+        let json_body = json!({"username": usr, "password": pwd});
+
+        Self::handle_response(request.send_json(json_body))
+    }
+
+    pub fn logout(&self, logout: bool) -> Result<serde_json::Value, String> {
+        let url = format!("{API_BASE_PATH}logout");
+
+        let request = ureq::post(&url);
+        let json_body = json!({"logout": logout});
+
         let request = if let Some(token) = &self.token {
             request.set("Authorization", &format!("Bearer {}", token.0))
         } else {
             request
         };
 
-        let json_body = json!({"username": usr, "password": pwd});
-
         Self::handle_response(request.send_json(json_body))
     }
-    // TODO: logout
     // END AUTH METHODS
 
     // START TABLE METHODS
@@ -198,7 +201,7 @@ impl Api {
         Self::handle_response(request.call())
     }
 
-    pub fn add_task_to_table(
+    pub fn add_task(
         &self,
         tablename: &str,
         task: &str,
@@ -217,6 +220,56 @@ impl Api {
         };
 
         Self::handle_response(request.send_json(json_body))
+    }
+
+    pub fn remove_task(&self, tablename: &str, id: &str) -> Result<serde_json::Value, String> {
+        let url = format!("{API_BASE_PATH}{tablename}/{id}");
+
+        let request = ureq::delete(&url);
+
+        let request = if let Some(token) = &self.token {
+            request.set("Authorization", &format!("Bearer {}", token.0))
+        } else {
+            request
+        };
+
+        Self::handle_response(request.call())
+    }
+
+    pub fn update_task(
+        &self,
+        tablename: &str,
+        id: &str,
+        task: &str,
+        due: Option<Due>,
+        group: Option<&str>,
+    ) -> Result<serde_json::Value, String> {
+        let url = format!("{API_BASE_PATH}{tablename}/{id}");
+
+        let request = ureq::put(&url);
+        let json_body = json!({"description": task,"due": due, "group": group});
+
+        let request = if let Some(token) = &self.token {
+            request.set("Authorization", &format!("Bearer {}", token.0))
+        } else {
+            request
+        };
+
+        Self::handle_response(request.send_json(json_body))
+    }
+
+    pub fn clear_table(&self, tablename: &str) -> Result<serde_json::Value, String> {
+        let url = format!("{API_BASE_PATH}{tablename}/clear");
+
+        let request = ureq::delete(&url);
+
+        let request = if let Some(token) = &self.token {
+            request.set("Authorization", &format!("Bearer {}", token.0))
+        } else {
+            request
+        };
+
+        Self::handle_response(request.call())
     }
     // END TASK METHODS
 }

@@ -18,6 +18,24 @@ pub fn prompt_credentials() -> io::Result<(String, String)> {
     Ok((username.trim().to_string(), password.trim().to_string()))
 }
 
+pub fn prompt_logout() -> io::Result<bool> {
+    print!("Are you sure you want to logout? [Y/n]: ");
+    io::stdout().flush()?;
+    let mut logout = String::new();
+    io::stdin().read_line(&mut logout)?;
+
+    let logout = logout.trim();
+
+    match logout.to_lowercase().as_str() {
+        "y" | "" => Ok(true), // 'y' or empty input means yes
+        "n" => Ok(false),     // 'n' means no
+        _ => {
+            println!("Invalid input. Please respond with 'Y' or 'n'.");
+            prompt_logout()
+        }
+    }
+}
+
 /// Gets the system timezone as a `chrono_tz::Tz` instance.
 pub fn get_sys_tz() -> Option<chrono_tz::Tz> {
     #[cfg(target_os = "linux")]

@@ -165,19 +165,35 @@ fn main() -> Result<(), String> {
     // Now process remaining commands
     match cli.command {
         Commands::Logout => todo!(),
-        Commands::Create(create_args) => todo!(),
-        Commands::Drop(drop_args) => todo!(),
+        Commands::Create(CreateArgs {
+            tablename,
+            due,
+            group,
+        }) => {
+            let res = api.create_table(&tablename, due, group)?;
+            println!("{res}");
+            unimplemented!("format the res")
+        }
+        Commands::Drop(DropArgs { tablename }) => {
+            let res = api.drop_table(&tablename)?;
+            println!("{res}");
+            unimplemented!("format the res")
+        }
         Commands::List(list_args) => {
             if let Some(tablename) = list_args.tablename {
+                // list 'tablename' contents
                 let res = api.list_table_contents(
                     &tablename,
                     list_args.group.as_deref(),
                     list_args.sort_by.as_deref(),
                 )?;
                 println!("{res}");
-                todo!()
+                unimplemented!("format the res")
             } else {
-                todo!()
+                // list table specs
+                let res = api.list_tables_specs()?;
+                println!("{res}");
+                unimplemented!("format the res")
             };
             Ok(())
         }

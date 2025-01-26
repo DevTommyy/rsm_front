@@ -79,6 +79,39 @@ impl Api {
         Self::handle_response(request.send_json(json_body))
     }
 
+    pub fn create_table(
+        &self,
+        tablename: &str,
+        due: bool,
+        group: bool,
+    ) -> Result<serde_json::Value, String> {
+        let url = format!("{API_BASE_PATH}table/{tablename}");
+
+        let request = ureq::post(&url);
+        let request = if let Some(token) = &self.token {
+            request.set("Authorization", &format!("Bearer {}", token.0))
+        } else {
+            request
+        };
+
+        let json_body = json!({"due": due, "group": group});
+
+        Self::handle_response(request.send_json(json_body))
+    }
+
+    pub fn drop_table(&self, tablename: &str) -> Result<serde_json::Value, String> {
+        let url = format!("{API_BASE_PATH}table/{tablename}");
+
+        let request = ureq::delete(&url);
+        let request = if let Some(token) = &self.token {
+            request.set("Authorization", &format!("Bearer {}", token.0))
+        } else {
+            request
+        };
+
+        Self::handle_response(request.call())
+    }
+
     pub fn list_table_contents(
         &self,
         tablename: &str,
@@ -98,6 +131,19 @@ impl Api {
             url.push('?');
             url.push_str(&query_params.join("&"));
         }
+
+        let request = ureq::get(&url);
+        let request = if let Some(token) = &self.token {
+            request.set("Authorization", &format!("Bearer {}", token.0))
+        } else {
+            request
+        };
+
+        Self::handle_response(request.call())
+    }
+
+    pub fn list_tables_specs(&self) -> Result<serde_json::Value, String> {
+        let url = format!("{API_BASE_PATH}table/list");
 
         let request = ureq::get(&url);
         let request = if let Some(token) = &self.token {

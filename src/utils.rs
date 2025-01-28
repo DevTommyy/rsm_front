@@ -143,7 +143,7 @@ macro_rules! impl_table_parsing {
                     $(
                         $field: item.get($json_key)
                             .and_then(|v| v.as_str())
-                            .unwrap_or_default()
+                            .unwrap_or("N/A")
                             .to_string(),
                     )*
                     id: item.get("id").and_then(|v| v.as_i64()).unwrap_or(0) as i32,

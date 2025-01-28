@@ -1,15 +1,23 @@
-# HOW TO INSTALL
+# Installation
 
-```bash
-// clone the repo in the dir you want
-git clone https://github.com/DevTommyy/cli_client.git
+To install just clone the repo in the directory you want
 
-// cd into the repo
-cd cli_client
+```
+$ git clone git@github.com:DevTommyy/rsm_front.git
+```
 
-// give the installer permission to run
-chmod +x installer.sh
+then 'cd' into that directory
 
-// run the installer (you will be asked for root permission after the build)
-./installer.sh
+```
+$ cd path/to/the/dir
+```
+
+finally execute the script to install it
+
+```
+# make the script executable
+$ chmod +x install.sh
+# run it
+$ ./install.sh
+
 ```

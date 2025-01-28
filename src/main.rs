@@ -119,7 +119,6 @@ struct ClearArgs {
     tablename: String,
 }
 
-// TODO: format the responses
 fn main() -> Result<(), String> {
     let cli = Cli::parse();
     let api = Api::from_token_file();
@@ -189,12 +188,22 @@ fn main() -> Result<(), String> {
 
             //clear the .token file, no need to change the state of the api cause the program will
             //end right after this
-            if let Err(e) = std::fs::File::create(".token") {
-                panic!("couldnt clear token file: {e}")
+
+            let formatted_res = res
+                .get("res")
+                .map(|v| v.as_str().unwrap_or_default())
+                .unwrap_or_default();
+
+            if !formatted_res.contains("Did not log out") {
+                if let Err(e) = std::fs::File::create(".token") {
+                    panic!("couldnt clear token file: {e}")
+                }
             }
 
-            println!("{res}");
-            unimplemented!("format the res")
+            println!();
+            println!("{formatted_res}");
+
+            Ok(())
         }
         Commands::Create(CreateArgs {
             tablename,
@@ -202,13 +211,29 @@ fn main() -> Result<(), String> {
             group,
         }) => {
             let res = api.create_table(&tablename, due, group)?;
-            println!("{res}");
-            unimplemented!("format the res")
+
+            let formatted_res = res
+                .get("res")
+                .map(|v| v.as_str().unwrap_or_default())
+                .unwrap_or_default();
+
+            println!();
+            println!("{formatted_res}");
+
+            Ok(())
         }
         Commands::Drop(DropArgs { tablename }) => {
             let res = api.drop_table(&tablename)?;
-            println!("{res}");
-            unimplemented!("format the res")
+
+            let formatted_res = res
+                .get("res")
+                .map(|v| v.as_str().unwrap_or_default())
+                .unwrap_or_default();
+
+            println!();
+            println!("{formatted_res}");
+
+            Ok(())
         }
         Commands::List(list_args) => {
             if let Some(tablename) = list_args.tablename {
@@ -237,13 +262,29 @@ fn main() -> Result<(), String> {
             group,
         }) => {
             let res = api.add_task(&tablename, &task, due, group.as_deref())?;
-            println!("{res}");
-            unimplemented!("format the res")
+
+            let formatted_res = res
+                .get("res")
+                .map(|v| v.as_str().unwrap_or_default())
+                .unwrap_or_default();
+
+            println!();
+            println!("{formatted_res}");
+
+            Ok(())
         }
         Commands::Remove(RemoveArgs { tablename, id }) => {
             let res = api.remove_task(&tablename, &id)?;
-            println!("{res}");
-            unimplemented!("format the res")
+
+            let formatted_res = res
+                .get("res")
+                .map(|v| v.as_str().unwrap_or_default())
+                .unwrap_or_default();
+
+            println!();
+            println!("{formatted_res}");
+
+            Ok(())
         }
         Commands::Update(UpdateArgs {
             tablename,
@@ -253,13 +294,29 @@ fn main() -> Result<(), String> {
             group,
         }) => {
             let res = api.update_task(&tablename, &id, &task, due, group.as_deref())?;
-            println!("{res}");
-            unimplemented!("format the res")
+
+            let formatted_res = res
+                .get("res")
+                .map(|v| v.as_str().unwrap_or_default())
+                .unwrap_or_default();
+
+            println!();
+            println!("{formatted_res}");
+
+            Ok(())
         }
         Commands::Clear(ClearArgs { tablename }) => {
             let res = api.clear_table(&tablename)?;
-            println!("{res}");
-            unimplemented!("format the res")
+
+            let formatted_res = res
+                .get("res")
+                .map(|v| v.as_str().unwrap_or_default())
+                .unwrap_or_default();
+
+            println!();
+            println!("{formatted_res}");
+
+            Ok(())
         }
         _ => unreachable!(), // This handles exhaustive checking without runtime cost
     }

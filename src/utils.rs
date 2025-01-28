@@ -132,3 +132,23 @@ impl TryFrom<&str> for Due {
 pub fn parse_due(value: &str) -> Result<Due, String> {
     Due::try_from(value).map_err(|e| e.to_string())
 }
+
+// macro to implement from json api response for the formatted types
+#[macro_export]
+macro_rules! impl_table_parsing {
+    ($struct_name:ident { $( $field:ident => $json_key:expr, )* }) => {
+        impl $struct_name {
+            pub fn from_json(item: &serde_json::Value) -> Self {
+                $struct_name {
+                    $(
+                        $field: item.get($json_key)
+                            .and_then(|v| v.as_str())
+                            .unwrap_or_default()
+                            .to_string(),
+                    )*
+                    id: item.get("id").and_then(|v| v.as_i64()).unwrap_or(0) as i32,
+                }
+            }
+        }
+    };
+}

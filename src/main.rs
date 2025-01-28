@@ -1,5 +1,6 @@
 use api::Api;
 use clap::{error::Result, Args, Parser, Subcommand};
+use formatter::{format_list_res, format_specs_res};
 use utils::{parse_due, prompt_logout, Due};
 
 mod api;
@@ -118,6 +119,7 @@ struct ClearArgs {
     tablename: String,
 }
 
+// TODO: format the responses
 fn main() -> Result<(), String> {
     let cli = Cli::parse();
     let api = Api::from_token_file();
@@ -129,6 +131,13 @@ fn main() -> Result<(), String> {
     // if login or signup match beforehand
     match cli.command {
         Commands::Login => {
+            if api.has_token() {
+                println!();
+                println!("Already logged in",);
+
+                return Ok(());
+            }
+
             let (usr, pwd) =
                 utils::prompt_credentials().map_err(|e| format!("Internal error: {e}"))?;
 
@@ -144,6 +153,13 @@ fn main() -> Result<(), String> {
             return Ok(());
         }
         Commands::Signup => {
+            if api.has_token() {
+                println!();
+                println!("Can't signup, currently logged in",);
+
+                return Ok(());
+            }
+
             let (usr, pwd) =
                 utils::prompt_credentials().map_err(|e| format!("Internal error: {e}"))?;
 
@@ -202,14 +218,17 @@ fn main() -> Result<(), String> {
                     list_args.group.as_deref(),
                     list_args.sort_by.as_deref(),
                 )?;
-                println!("{res}");
-                unimplemented!("format the res")
+
+                let formatted_res = format_list_res(&res);
+                println!("{formatted_res}");
             } else {
                 // list table specs
                 let res = api.list_tables_specs()?;
-                println!("{res}");
-                unimplemented!("format the res")
+                let formatted_res = format_specs_res(&res);
+                println!("{formatted_res}");
             };
+
+            Ok(())
         }
         Commands::Add(AddArgs {
             tablename,

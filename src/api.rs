@@ -4,7 +4,7 @@ use crate::utils::{self, Due};
 
 struct Token(String);
 
-const API_BASE_PATH: &str = "http://127.0.0.1:8080/";
+const API_BASE_PATH: &str = "http://192.168.1.69:8081/";
 
 #[derive(Default)]
 pub struct Api {

@@ -14,7 +14,17 @@ pub struct Api {
 impl Api {
     // START API UTILS
     pub fn from_token_file() -> Self {
-        let token: Option<Token> = std::fs::read_to_string(".token")
+        let exe_path = std::env::current_exe().ok().unwrap(); // Get the current executable's path
+
+        // Go to the parent directory (where the executable is located) from /target/release
+        let token_path: std::path::PathBuf = exe_path
+            .parent()
+            .and_then(|p| p.parent())
+            .and_then(|p| p.parent())
+            .map(|p| p.join(".token"))
+            .unwrap();
+
+        let token: Option<Token> = std::fs::read_to_string(token_path)
             .ok()
             .filter(|s| !s.trim().is_empty())
             .map(|s| {

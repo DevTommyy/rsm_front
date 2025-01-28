@@ -144,8 +144,11 @@ fn main() -> Result<(), String> {
             // res is there, it wont only if there'll be breaking changes on the api
             println!();
             println!(
-                "Your token is: '{}', put it in your '.token' file",
+                "Your token is: '{}'",
                 res.get("res").and_then(|v| v.as_str()).unwrap()
+            );
+            println!(
+                "Put it in your '.token' file in the project directory (.../rsm_front/.token)"
             );
             println!("successfully logged in");
 

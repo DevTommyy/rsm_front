@@ -14,7 +14,14 @@ pub struct Api {
 impl Api {
     // START API UTILS
     pub fn from_token_file() -> Self {
+        #[cfg(target_os = "linux")]
         let exe_path = std::env::current_exe().ok().unwrap(); // Get the current executable's path
+
+        #[cfg(target_os = "macos")]
+        let exe_path = std::env::current_exe()
+            .ok()
+            .and_then(|p| std::fs::canonicalize(p).ok())
+            .unwrap();
 
         // Go to the parent directory (where the executable is located) from /target/release
         let token_path: std::path::PathBuf = exe_path

@@ -56,7 +56,6 @@ pub fn get_sys_tz() -> Option<chrono_tz::Tz> {
         }
     }
 
-    // TODO: test this on macos
     #[cfg(target_os = "macos")]
     {
         // macOS also uses /etc/localtime symlink to /var/db/timezone/zoneinfo

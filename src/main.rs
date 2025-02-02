@@ -106,7 +106,7 @@ struct UpdateArgs {
     #[arg(requires = "tablename")]
     id: String,
     #[arg(short = 't', long = "task", requires = "id")]
-    task: String,
+    task: Option<String>,
     #[arg(short = 'd', long = "due", requires = "tablename", value_parser = parse_due, help = "due in the format of 'hh:mm' or 'YYYY-MM-dd hh:mm'")]
     due: Option<Due>,
     #[arg(short = 'g', long = "group", requires = "id")]
@@ -296,7 +296,7 @@ fn main() -> Result<(), String> {
             due,
             group,
         }) => {
-            let res = api.update_task(&tablename, &id, &task, due, group.as_deref())?;
+            let res = api.update_task(&tablename, &id, task.as_deref(), due, group.as_deref())?;
 
             let formatted_res = res
                 .get("res")

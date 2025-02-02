@@ -257,7 +257,7 @@ impl Api {
         &self,
         tablename: &str,
         id: &str,
-        task: &str,
+        task: Option<&str>,
         due: Option<Due>,
         group: Option<&str>,
     ) -> Result<serde_json::Value, String> {

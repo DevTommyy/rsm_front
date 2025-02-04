@@ -102,14 +102,20 @@ impl Api {
     // END API UTILS
 
     // START AUTH METHODS
-    pub fn register_user(&self, usr: String, pwd: String) -> Result<serde_json::Value, String> {
+    pub fn register_user(
+        &self,
+        usr: String,
+        pwd: String,
+        ntfy_token: Option<&str>,
+        ntfy_topic: Option<&str>,
+    ) -> Result<serde_json::Value, String> {
         let url = format!("{API_BASE_PATH}signup");
 
         let request = ureq::post(&url);
 
         // defaults to UTC
         let tz: chrono_tz::Tz = utils::get_sys_tz().unwrap_or_default();
-        let json_body = json!({"username": usr, "password": pwd, "timezone": tz});
+        let json_body = json!({"username": usr, "password": pwd, "ntfy_token": ntfy_token, "ntfy_topic": ntfy_topic, "timezone": tz});
 
         Self::handle_response(request.send_json(json_body))
     }

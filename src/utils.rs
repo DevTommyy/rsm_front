@@ -3,7 +3,7 @@ use std::{
     io::{self, Write},
 };
 
-// i dont care about the pass being shown on the terminal since only i am using this
+// TODO: switch to rpassword to make the password input invisible
 pub fn prompt_credentials() -> io::Result<(String, String)> {
     print!("Enter username: ");
     io::stdout().flush()?;
@@ -16,6 +16,39 @@ pub fn prompt_credentials() -> io::Result<(String, String)> {
     io::stdin().read_line(&mut password)?;
 
     Ok((username.trim().to_string(), password.trim().to_string()))
+}
+
+pub fn prompt_ntfy_info() -> io::Result<(Option<String>, Option<String>)> {
+    print!("Do you want to configure notifications? [Y/n]: ");
+    io::stdout().flush()?;
+    let mut notify = String::new();
+    io::stdin().read_line(&mut notify)?;
+
+    let logout = notify.trim();
+
+    match logout.to_lowercase().as_str() {
+        "y" | "" => {
+            print!("Enter token: ");
+            io::stdout().flush()?;
+            let mut token = String::new();
+            io::stdin().read_line(&mut token)?;
+
+            print!("Enter topic: ");
+            io::stdout().flush()?;
+            let mut topic = String::new();
+            io::stdin().read_line(&mut topic)?;
+
+            Ok((
+                Some(token.trim().to_string()),
+                Some(topic.trim().to_string()),
+            ))
+        } // 'y' or empty input means yes
+        "n" => Ok((None, None)), // 'n' means no
+        _ => {
+            println!("Invalid input. Please respond with 'Y' or 'n'.");
+            prompt_ntfy_info()
+        }
+    }
 }
 
 pub fn prompt_logout() -> io::Result<bool> {

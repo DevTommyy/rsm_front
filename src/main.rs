@@ -165,7 +165,10 @@ fn main() -> Result<(), String> {
             let (usr, pwd) =
                 utils::prompt_credentials().map_err(|e| format!("Internal error: {e}"))?;
 
-            let res = api.register_user(usr, pwd)?;
+            let (token, topic) =
+                utils::prompt_ntfy_info().map_err(|e| format!("Internal error: {e}"))?;
+
+            let res = api.register_user(usr, pwd, token.as_deref(), topic.as_deref())?;
             println!();
             println!("{}", res.get("res").and_then(|v| v.as_str()).unwrap());
             println!("Now you can login");

@@ -3,18 +3,13 @@ use std::{
     io::{self, Write},
 };
 
-// TODO: switch to rpassword to make the password input invisible
 pub fn prompt_credentials() -> io::Result<(String, String)> {
     print!("Enter username: ");
     io::stdout().flush()?;
     let mut username = String::new();
     io::stdin().read_line(&mut username)?;
 
-    print!("Enter password: ");
-    io::stdout().flush()?;
-    let mut password = String::new();
-    io::stdin().read_line(&mut password)?;
-
+    let password = rpassword::prompt_password("Enter password:")?;
     Ok((username.trim().to_string(), password.trim().to_string()))
 }
 

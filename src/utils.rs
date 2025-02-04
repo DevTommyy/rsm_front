@@ -140,10 +140,18 @@ macro_rules! impl_table_parsing {
             pub fn from_json(item: &serde_json::Value) -> Self {
                 $struct_name {
                     $(
-                        $field: item.get($json_key)
-                            .and_then(|v| v.as_str())
-                            .unwrap_or("N/A")
-                            .to_string(),
+                        $field: if $json_key == "due" {
+                            item.get($json_key)
+                                .and_then(|v| v.as_str())
+                                .and_then(|s| chrono::DateTime::parse_from_rfc3339(s).ok())
+                                .map(|dt| dt.format("%Y-%m-%d %H:%M").to_string())
+                                .unwrap_or("N/A".to_string())
+                        } else {
+                            item.get($json_key)
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("N/A")
+                                .to_string()
+                        },
                     )*
                     id: item.get("id").and_then(|v| v.as_i64()).unwrap_or(0) as i32,
                 }

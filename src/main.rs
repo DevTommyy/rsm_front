@@ -250,13 +250,20 @@ fn main() -> Result<(), String> {
                     list_args.sort_by.as_deref(),
                 )?;
 
-                let formatted_res = format_list_res(&res);
-                println!("{formatted_res}");
+                if let Some(formatted_res) = format_list_res(&res) {
+                    println!("{formatted_res}");
+                } else {
+                    println!("No data to display.");
+                }
             } else {
                 // list table specs
                 let res = api.list_tables_specs()?;
-                let formatted_res = format_specs_res(&res);
-                println!("{formatted_res}");
+
+                if let Some(formatted_res) = format_specs_res(&res) {
+                    println!("{formatted_res}");
+                } else {
+                    println!("No data to display.");
+                }
             };
 
             Ok(())

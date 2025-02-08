@@ -1,5 +1,8 @@
 use serde_json::Value;
-use tabled::{settings::Style, Table, Tabled};
+use tabled::{
+    settings::{object::Rows, themes::Colorization, Color, Format, Style, Width},
+    Table, Tabled,
+};
 
 use crate::impl_table_parsing;
 
@@ -51,30 +54,22 @@ impl_table_parsing!(MinimalDataRow {
     description => "description",
 });
 
-pub fn format_list_res(res: &Value) -> String {
+pub fn format_list_res(res: &Value) -> Option<Table> {
     if let Some(arr) = res.get("res").and_then(|v| v.as_array()) {
         let has_due = arr.iter().any(|item| item.get("due").is_some());
         let has_group = arr.iter().any(|item| item.get("group").is_some());
 
         if has_due && has_group {
-            // Use FullDataRow
-            let rows: Vec<FullDataRow> = arr.iter().map(FullDataRow::from_json).collect();
-            Table::new(&rows).with(Style::rounded()).to_string()
+            Some(to_table(arr, FullDataRow::from_json))
         } else if has_due {
-            // Use NoGroupDataRow
-            let rows: Vec<NoGroupDataRow> = arr.iter().map(NoGroupDataRow::from_json).collect();
-            Table::new(&rows).with(Style::rounded()).to_string()
+            Some(to_table(arr, NoGroupDataRow::from_json))
         } else if has_group {
-            // Use NoDueDataRow
-            let rows: Vec<NoDueDataRow> = arr.iter().map(NoDueDataRow::from_json).collect();
-            Table::new(&rows).with(Style::rounded()).to_string()
+            Some(to_table(arr, NoDueDataRow::from_json))
         } else {
-            // Use MinimalDataRow
-            let rows: Vec<MinimalDataRow> = arr.iter().map(MinimalDataRow::from_json).collect();
-            Table::new(&rows).with(Style::rounded()).to_string()
+            Some(to_table(arr, MinimalDataRow::from_json))
         }
     } else {
-        "No data to display.".to_string()
+        None
     }
 }
 
@@ -88,35 +83,43 @@ struct SupportRow {
     due_support: String,
 }
 
-pub fn format_specs_res(res: &Value) -> String {
+pub fn format_specs_res(res: &Value) -> Option<Table> {
     if let Some(arr) = res.get("res").and_then(|v| v.as_array()) {
-        let mut rows = vec![];
-
-        for item in arr {
-            rows.push(SupportRow {
-                name: item
-                    .get("name")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or_default()
-                    .to_string(),
-                group_support: item
-                    .get("has_group")
-                    .and_then(|v| v.as_bool())
-                    .map(|b| if b { "Yes" } else { "No" })
-                    .unwrap_or("No")
-                    .to_string(),
-                due_support: item
-                    .get("has_due")
-                    .and_then(|v| v.as_bool())
-                    .map(|b| if b { "Yes" } else { "No" })
-                    .unwrap_or("No")
-                    .to_string(),
-            });
-        }
-
-        return Table::new(&rows).with(Style::rounded()).to_string();
+        return Some(to_table(arr, |item| SupportRow {
+            name: item
+                .get("name")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default()
+                .to_string(),
+            group_support: item
+                .get("has_group")
+                .and_then(|v| v.as_bool())
+                .map(|b| if b { "Yes" } else { "No" })
+                .unwrap_or("No")
+                .to_string(),
+            due_support: item
+                .get("has_due")
+                .and_then(|v| v.as_bool())
+                .map(|b| if b { "Yes" } else { "No" })
+                .unwrap_or("No")
+                .to_string(),
+        }));
     }
 
     // If no valid data is found (should never be the case)
-    "No data to display.".to_string()
+    None
+}
+
+fn to_table<T: Tabled>(arr: &[Value], from_json_fn: impl Fn(&Value) -> T) -> Table {
+    let rows: Vec<T> = arr.iter().map(from_json_fn).collect();
+
+    Table::new(&rows)
+        .with(Style::modern_rounded())
+        .with(Colorization::exact(
+            [Color::BOLD | Color::FG_GREEN],
+            Rows::first(),
+        ))
+        .modify(Rows::new(1..), Width::wrap(110).keep_words(true))
+        .modify(Rows::first(), Format::content(|text| text.to_uppercase()))
+        .to_owned()
 }

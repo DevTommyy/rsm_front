@@ -1,6 +1,10 @@
 use serde_json::Value;
 use tabled::{
-    settings::{object::Rows, themes::Colorization, Color, Format, Style, Width},
+    settings::{
+        object::{Columns, Object, Rows},
+        themes::Colorization,
+        Alignment, Color, Format, Style, Width,
+    },
     Table, Tabled,
 };
 
@@ -8,30 +12,30 @@ use crate::impl_table_parsing;
 
 #[derive(Tabled)]
 struct FullDataRow {
+    id: i32,
     description: String,
     due: String,
     group: String,
-    id: i32,
 }
 
 #[derive(Tabled)]
 struct NoDueDataRow {
+    id: i32,
     description: String,
     group: String,
-    id: i32,
 }
 
 #[derive(Tabled)]
 struct NoGroupDataRow {
+    id: i32,
     description: String,
     due: String,
-    id: i32,
 }
 
 #[derive(Tabled)]
 struct MinimalDataRow {
-    description: String,
     id: i32,
+    description: String,
 }
 
 impl_table_parsing!(FullDataRow {
@@ -121,5 +125,7 @@ fn to_table<T: Tabled>(arr: &[Value], from_json_fn: impl Fn(&Value) -> T) -> Tab
         ))
         .modify(Rows::new(1..), Width::wrap(110).keep_words(true))
         .modify(Rows::first(), Format::content(|text| text.to_uppercase()))
+        .modify(Columns::first().not(Rows::first()), Color::BOLD)
+        .modify(Columns::first().not(Rows::first()), Alignment::right())
         .to_owned()
 }

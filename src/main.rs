@@ -95,8 +95,9 @@ struct AddArgs {
 #[derive(Args, Debug)]
 struct RemoveArgs {
     tablename: String,
-    #[arg(requires = "tablename")]
-    id: String,
+    #[arg(requires = "tablename", value_parser = utils::parse_ids, num_args = 1..,
+        help = "IDs can be single (42), multiple (42 43), or ranges (10..15). Combinations allowed.")]
+    ids: Vec<Vec<usize>>,
 }
 
 // update a task of a table
@@ -286,16 +287,25 @@ fn main() -> Result<(), String> {
 
             Ok(())
         }
-        Commands::Remove(RemoveArgs { tablename, id }) => {
-            let res = api.remove_task(&tablename, &id)?;
-
-            let formatted_res = res
-                .get("res")
-                .map(|v| v.as_str().unwrap_or_default())
-                .unwrap_or_default();
-
+        Commands::Remove(RemoveArgs { tablename, ids }) => {
             println!();
-            println!("{formatted_res}");
+            for id in ids.into_iter().flatten() {
+                // handle the res with a match so if there is an error it continues
+                // to delete other eventual ids
+                match api.remove_task(&tablename, id) {
+                    Ok(res) => {
+                        let formatted_res = res
+                            .get("res")
+                            .map(|v| v.as_str().unwrap_or_default())
+                            .unwrap_or_default();
+
+                        println!("{formatted_res}");
+                    }
+                    Err(e) => {
+                        println!("Error when removing task with id {id}: {e}");
+                    }
+                }
+            }
 
             Ok(())
         }

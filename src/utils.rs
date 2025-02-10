@@ -187,3 +187,37 @@ macro_rules! impl_table_parsing {
         }
     };
 }
+
+pub fn parse_ids(input: &str) -> Result<Vec<usize>, String> {
+    use std::str::FromStr;
+
+    let mut numbers = Vec::new();
+
+    for value in input.split_whitespace() {
+        if value.contains("..") {
+            let parts: Vec<&str> = value.trim().split("..").collect();
+            if parts.len() == 2 {
+                let start = parts[0]
+                    .parse::<usize>()
+                    .map_err(|_| format!("Invalid number: {}", parts[0]))?;
+                let end = parts[1]
+                    .parse::<usize>()
+                    .map_err(|_| format!("Invalid number: {}", parts[1]))?;
+                if start > end {
+                    return Err(format!("Invalid range: {}..{}", start, end));
+                }
+                numbers.extend(start..=end);
+            } else {
+                return Err(format!("Invalid range format: {}", value));
+            }
+        } else {
+            let num =
+                usize::from_str(value.trim()).map_err(|_| format!("Invalid number: {}", value))?;
+            numbers.push(num);
+        }
+    }
+
+    numbers.sort();
+    numbers.dedup();
+    Ok(numbers)
+}

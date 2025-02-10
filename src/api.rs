@@ -245,7 +245,7 @@ impl Api {
         Self::handle_response(request.send_json(json_body))
     }
 
-    pub fn remove_task(&self, tablename: &str, id: &str) -> Result<serde_json::Value, String> {
+    pub fn remove_task(&self, tablename: &str, id: usize) -> Result<serde_json::Value, String> {
         let url = format!("{API_BASE_PATH}{tablename}/{id}");
 
         let request = ureq::delete(&url);

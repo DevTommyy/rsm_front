@@ -8,7 +8,7 @@ struct Token(String);
 // const API_BASE_PATH: &str = "http://192.168.1.69:8080/";
 
 // prod
-const API_BASE_PATH: &str = "https://rsm.fefe.tech/";
+const API_BASE_PATH: &str = "https://rsm.fefe.tech/api/";
 
 #[derive(Default)]
 pub struct Api {
